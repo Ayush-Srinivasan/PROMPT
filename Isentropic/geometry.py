@@ -9,3 +9,6 @@ def diameter_from_area(area):
 # r = sqrt(A/pi)
 def radius_from_area(area):
     return np.sqrt(area/np.pi)
+
+def radius_from_diameter(diameter):
+    return diameter/2
