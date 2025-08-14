@@ -12,3 +12,6 @@ def radius_from_area(area):
 
 def radius_from_diameter(diameter):
     return diameter/2
+
+def area_from_radius(radius):
+    return np.pi * radius ** 2

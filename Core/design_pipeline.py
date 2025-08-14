@@ -1,15 +1,23 @@
 import sys
 import os
+import numpy as np
 from dataclasses import dataclass
 from .engine_inputs import EngineInputs
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from Isentropic import (
-    specific_gas_constant, exit_mach, exit_temperature, exit_pressure, exit_velocity, expansion_ratio,                  # isentropic_equations.py
-    mass_flow_rate, specific_impulse, throat_area, exit_area, characteristic_velocity,                                  # engine_performance.py
-    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length,  # nozzle_geometry.py
-    diameter_from_area, radius_from_area, radius_from_diameter                                                          # geometry.py 
+    # isentropic_equations.py
+    specific_gas_constant, exit_mach, exit_temperature, exit_pressure, exit_velocity, expansion_ratio, 
+    # engine_performance.py
+    mass_flow_rate, specific_impulse, throat_area, exit_area, characteristic_velocity,           
+    # conical_nozzle_geometry.py                                           
+    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length, 
+    # bell_nozzle_geometry.py                   
+    initial_angle_fit, exit_angle_fit, divergent_length_bell, throat_entry_curve, throat_exit_curve, create_bell_curves, load_fit_params,
+    # geometry.py 
+    diameter_from_area, radius_from_area, radius_from_diameter, area_from_radius                                                            
 )
 
 from Data import load_materials, load_propellant
@@ -119,6 +127,73 @@ def conical_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs) ->
     )
 
     
+@dataclass
+class BellNozzleGeometry:
+    initial_angle: float    # degrees
+    exit_angle: float       # degrees
+    chamber_radius: float   # m
+    throat_radius: float    # m
+    exit_radius: float      # m
+    nozzle_length: float    # m
+    length_chamber: float   # m
+    chamber_area: float     # m^2
+    contraction_ratio: float               
+    x_points: float         # m
+    y_points: float         # m
+    bell_percent: float     # percentage
+
+def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs) -> dict:
+    nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit)
+    # theta_n fit parameters
+    a_n = load_fit_params["theta_n"]["a"]
+    b_n = load_fit_params["theta_n"]["b"]
+    c_n = load_fit_params["theta_n"]["c"]
+
+    initial_angle = initial_angle_fit(geometry.ER, a_n, b_n, c_n) # gets initial angle
+
+    # theta_e fit parameters
+    a_e = load_fit_params["theta_e"]["a"]
+    b_e = load_fit_params["theta_e"]["b"]
+    c_e = load_fit_params["theta_e"]["c"]   
+
+    exit_angle = exit_angle_fit(geometry.ER, a_e, b_e, c_e) # gets exit angle
+
+    # gets radiuses and length
+    throat_radius = radius_from_area(geometry.a_throat)
+    exit_radius = radius_from_area(geometry.a_exit)
+
+    nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit)
+
+    # nozzle points
+    x1, y1 = throat_entry_curve(geometry.a_throat)
+    x2, y2 = throat_exit_curve(geometry.a_throat, initial_angle)
+    x3, y3 = create_bell_curves(initial_angle, exit_angle, nozzle_length, geometry.a_exit, x2[-1], y2[-1])
+
+    x_points = np.concatenate([x1, x2, x3]) # connects all points together # m
+    y_points = np.concatenate([y1, y2, y3]) # connects all points together # m
+
+    # If CAD includes filleting or blending at the throat, chamber radius is not correct, therefore CR is incorrect as well
+    # This value may underestimate true chamber radius. If so, use true chamber geometry
+    chamber_radius = y1[0] # initial point of chamber gives chamber radius 
+    chamber_area = area_from_radius(chamber_radius)
+    contraction_ratio = chamber_area / geometry.a_throat
+    chamber_diameter = chamber_radius * 2
+    l_chamber = chamber_length(chamber_diameter)
+
+    return BellNozzleGeometry(
+        initial_angle=initial_angle,        # degrees
+        exit_angle=exit_angle,              # degrees
+        chamber_radius=chamber_radius,      # m
+        throat_radius=throat_radius,        # m
+        exit_radius=exit_radius,            # m
+        nozzle_length=nozzle_length,        # m
+        length_chamber=l_chamber,            # m
+        chamber_area=chamber_area,          # m^2
+        contraction_ratio=contraction_ratio,               
+        x_points=x_points,                  # m
+        y_points=y_points,                  # m
+        bell_percent=80.0                   # percentage
+    )
 
 
 
