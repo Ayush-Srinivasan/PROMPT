@@ -100,7 +100,8 @@ def create_bell_curves(initial_angle, final_angle, nozzle_length, exit_area, N_x
     return (x_t, y_t)
 
 
-"""
+# === Test Section to Validate Code ===
+
 # === 1. Define test inputs ===
 At = 0.78539816339  # throat radius in meters (or unit)
 epsilon = 3  # area expansion ratio
@@ -109,15 +110,14 @@ theta_n = 33  # initial bell angle in degrees (from fit)
 theta_e = 7   # exit bell angle in degrees (from fit)
 bell_percent = 0.8
 
-# === 2. Compute nozzle length ===
-throat_area = np.pi * Rt**2
-exit_area = np.pi * Re**2
-L = divergent_length_bell(throat_area, exit_area)
+
+
+L = divergent_length_bell(At, Ae)
 
 # === 3. Generate each section ===
 x1, y1 = throat_entry_curve(At)
 x2, y2 = throat_exit_curve(At, theta_n)
-x3, y3 = create_bell_curves(theta_n, theta_e, L, At, Ae, x2[-1], y2[-1])
+x3, y3 = create_bell_curves(theta_n, theta_e, L, Ae, x2[-1], y2[-1])
 
 # === 4. Concatenate full profile ===
 x_total = np.concatenate([x1, x2, x3])
@@ -135,4 +135,3 @@ plt.ylabel("Radius")
 plt.legend()
 plt.tight_layout()
 plt.show()
-"""
