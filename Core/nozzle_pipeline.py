@@ -1,8 +1,10 @@
 import sys
 import os
 import numpy as np
+from numpy.typing import NDArray
 from dataclasses import dataclass
 from .engine_inputs import EngineInputs
+
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -36,7 +38,7 @@ class EngineDesignResult:
     Isp: float          # s
     c_star: float       # m/s
 
-def engine_analysis(inputs: EngineInputs) -> dict:
+def engine_analysis(inputs: EngineInputs):
     
     # isentropic equations
     SGC = specific_gas_constant(inputs.cp, inputs.gamma) # J/kg*K
@@ -85,7 +87,7 @@ class ConicalNozzleGeometry:
     convergent_angle: float     # degrees
     divergent_angle: float      # degrees
 
-def conical_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs) -> dict:
+def conical_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     # diameters
     diameter_chamber = chamber_diameter(geometry.a_throat, inputs.contraction_ratio)
     diameter_throat = diameter_from_area(geometry.a_throat)
@@ -138,11 +140,11 @@ class BellNozzleGeometry:
     length_chamber: float   # m
     chamber_area: float     # m^2
     contraction_ratio: float               
-    x_points: float         # m
-    y_points: float         # m
+    x_points: NDArray[np.float64]        # m
+    y_points: NDArray[np.float64]         # m
     bell_percent: float     # percentage
 
-def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs) -> dict:
+def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit)
     # theta_n fit parameters
     a_n = load_fit_params["theta_n"]["a"]
