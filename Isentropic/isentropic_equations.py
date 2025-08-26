@@ -15,7 +15,7 @@ def exit_temperature(Chamber_Temperature, Gamma, Mach):
 
 # exit pressure
 def exit_pressure(Chamber_Pressure, Gamma, Mach):
-    (Chamber_Pressure/100000) * (1 + ((Gamma - 1) / 2) * Mach**2) ** (-Gamma / (Gamma - 1)) # Pa
+    return (Chamber_Pressure/100000) * (1 + ((Gamma - 1) / 2) * Mach**2) ** (-Gamma / (Gamma - 1)) # Pa
 
 # exit velocity
 def exit_velocity(Mach, Gamma, Specific_Gas_Constant, Exit_Temperature):

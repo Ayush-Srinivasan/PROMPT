@@ -99,7 +99,11 @@ def create_bell_curves(initial_angle, final_angle, nozzle_length, exit_area, N_x
 
     return (x_t, y_t)
 
+<<<<<<< HEAD
 """
+=======
+'''
+>>>>>>> 458da7732c41e732352611a7c684c1ead92b5428
 # === Test Section to Validate Code ===
 
 # === 1. Define test inputs ===
@@ -135,4 +139,8 @@ plt.ylabel("Radius")
 plt.legend()
 plt.tight_layout()
 plt.show()
+<<<<<<< HEAD
 """
+=======
+'''
+>>>>>>> 458da7732c41e732352611a7c684c1ead92b5428
