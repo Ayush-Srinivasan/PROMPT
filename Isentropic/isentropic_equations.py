@@ -3,7 +3,7 @@ from scipy.constants import atmosphere
 
 # specific gas constant
 def specific_gas_constant(specific_heat, Gamma):
-    return specific_heat * (1 - (1/Gamma)) # J/(kg*K)
+    return specific_heat * 1000 * (1 - (1/Gamma)) # J/(kg*K)
 
 # exit Mach Number
 def exit_mach(Chamber_Pressure, Gamma):

@@ -6,7 +6,7 @@ class EngineInputs:
     chamber_temperature: float      # K
     ambient_pressure: float         # Pa
     gamma: float                    # Specific heat ratio
-    cp: float                       # Specific heat [J/kg·K]
+    cp: float                       # Specific heat [kJ/kg·K]
     thrust: float                   # N
     convergent_angle: float         # degreees
     divergent_angle: float          # degrees
