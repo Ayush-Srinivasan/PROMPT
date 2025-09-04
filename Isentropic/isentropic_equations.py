@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.constants import atmosphere
+from scipy.constants import atmosphere # Pa
 
 # specific gas constant
 def specific_gas_constant(specific_heat, Gamma):
@@ -7,7 +7,7 @@ def specific_gas_constant(specific_heat, Gamma):
 
 # exit Mach Number
 def exit_mach(Chamber_Pressure, Gamma):
-    return np.sqrt((2 / (Gamma - 1)) * ((atmosphere / Chamber_Pressure)**((1 - Gamma) / Gamma) - 1)) 
+    return np.sqrt((2/(Gamma-1))*((Chamber_Pressure/atmosphere)**((Gamma-1)/Gamma) - 1)) 
 
 # exit temperature
 def exit_temperature(Chamber_Temperature, Gamma, Mach):
