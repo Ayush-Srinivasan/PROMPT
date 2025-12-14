@@ -1,5 +1,5 @@
 from .isentropic_equations import (
-    specific_gas_constant, exit_mach, exit_temperature, exit_pressure, exit_velocity, expansion_ratio
+    specific_gas_constant, exit_mach, exit_temperature, exit_pressure, exit_velocity, expansion_ratio, throat_pressure, throat_temperature
 )
 from .engine_performance import (
     mass_flow_rate, specific_impulse, throat_area, exit_area, characteristic_velocity
