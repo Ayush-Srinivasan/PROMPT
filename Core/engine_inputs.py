@@ -3,15 +3,15 @@ from dataclasses import dataclass
 @dataclass
 class EngineInputs:
     chamber_pressure: float         # Pa
-    chamber_temperature: float      # K
+    OF_min: float
+    OF_max: float
+    OF_increment: float
     ambient_pressure: float         # Pa
-    gamma: float                    # Specific heat ratio
-    cp: float                       # Specific heat [kJ/kg·K]
     thrust: float                   # N
     convergent_angle: float         # degreees
     divergent_angle: float          # degrees
     contraction_ratio: float        # should be from 2-5 for small engines and 5-8 for large engines
-    throat_ratio: float             # should be between 0.5 and 1 for conical nozzles
-    fuel_name: str = "RP-1"
-    oxidizer_name: str = "LOX"
+    throat_ratio: float             # should be between 0.05 and 0.2 for conical nozzles
+    fuel_name: str 
+    oxidizer_name: str 
     source: str = "GUI"             # or "CEA"

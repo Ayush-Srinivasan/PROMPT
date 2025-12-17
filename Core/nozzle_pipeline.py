@@ -3,21 +3,20 @@ import os
 import numpy as np
 from numpy.typing import NDArray
 from dataclasses import dataclass
-from .engine_inputs import EngineInputs
 
+from .engine_inputs import EngineInputs # engine input file
 
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from CEA.CEARunner import CEA_Outputs, CEArun # CEA output dataclass and CEA Running Function
 
 from Isentropic import (
     # isentropic_equations.py
-    specific_gas_constant, exit_mach, exit_temperature, exit_pressure, exit_velocity, expansion_ratio, 
+    isentropic_eqns,
     # engine_performance.py
     mass_flow_rate, specific_impulse, throat_area, exit_area, characteristic_velocity,           
     # conical_nozzle_geometry.py                                           
     throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length, 
     # bell_nozzle_geometry.py                   
-    initial_angle_fit, exit_angle_fit, divergent_length_bell, throat_entry_curve, throat_exit_curve, create_bell_curves, load_fit_params,
+    initial_angle_fit, exit_angle_fit, divergent_length_bell, throat_entry_curve, throat_exit_curve, create_bell_curves,
     # geometry.py 
     diameter_from_area, radius_from_area, radius_from_diameter, area_from_radius                                                            
 )
@@ -28,9 +27,11 @@ from Data import load_materials, load_propellant
 @dataclass
 class EngineDesignResult:
     mach_exit: float    
+    T_throat: float     # K
     T_exit: float       # K
     v_exit: float       # m/s
     p_exit: float       # Pa
+    p_throat: float     # Pa
     mdot: float         # kg/s
     a_throat: float     # m^2
     a_exit: float       # m^2
@@ -41,12 +42,7 @@ class EngineDesignResult:
 def engine_analysis(inputs: EngineInputs):
     
     # isentropic equations
-    SGC = specific_gas_constant(inputs.cp, inputs.gamma) # J/kg*K
-    mach_exit = exit_mach(inputs.chamber_pressure, inputs.gamma)
-    T_exit = exit_temperature(inputs.chamber_temperature, inputs.gamma, mach_exit)
-    p_exit = exit_pressure(inputs.chamber_pressure, inputs.gamma, mach_exit)
-    v_exit = exit_velocity(mach_exit, inputs.gamma, SGC, T_exit)
-    ER = expansion_ratio(inputs.gamma, mach_exit)
+    SGC, mach_exit,T_throat, T_exit, p_throat, p_exit, v_exit, ER = isentropic_eqns()
 
     # characterizing equations
     mdot = mass_flow_rate(inputs.thrust, v_exit)
@@ -57,9 +53,11 @@ def engine_analysis(inputs: EngineInputs):
 
     return EngineDesignResult(
         mach_exit=mach_exit,
+        T_throat=T_throat,
         T_exit=T_exit,
         v_exit=v_exit,
         p_exit=p_exit,
+        p_throat=p_throat,
         mdot=mdot,
         a_throat=a_throat,
         a_exit=a_exit,
