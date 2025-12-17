@@ -7,7 +7,7 @@ from .engine_performance import (
 )
 
 from .geometry import (
-    radius_from_area, diameter_from_area, radius_from_diameter, area_from_radius
+    radius_from_area, diameter_from_area, radius_from_diameter, area_from_radius, line_plot
 )
 
 from .conical_nozzle_geometry import (

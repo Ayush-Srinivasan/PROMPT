@@ -13,14 +13,6 @@ class CEA_Outputs:
     density_chamber: float
     specific_heat: float
 
-cea = CEA_Obj(
-    oxName = EngineInputs.oxidizer_name,
-    fuelName = EngineInputs.fuel_name_name,
-    pressure_units= 'bar',
-    temperature_units= 'K',
-    density_units= 'kg/m^3',
-    specific_heat_units= 'kJ/kg-K',
-)
 
 # example dataclass; this will take in GUI data
 '''
@@ -46,7 +38,16 @@ def CEArun(engine_in: EngineInputs):
     Pc_bar = engine_in.chamber_pressure / 1e5        # chamber pressure
     eps= 40.0       # arbitrary; we don't care about nozzle here
 
-    OF_values = np.arange(engine_in.OF_min, engine_in.OF_max, engine_in.OF_increment)   # 0.8, 1.0, ..., 3.8
+    cea = CEA_Obj(
+        oxName = engine_in.oxidizer_name,
+        fuelName = engine_in.fuel_name,
+        pressure_units= 'bar',
+        temperature_units= 'K',
+        density_units= 'kg/m^3',
+        specific_heat_units= 'kJ/kg-K',
+    )
+
+    OF_values = np.arange(engine_in.OF_min, engine_in.OF_max + engine_in.OF_increment, engine_in.OF_increment)   # increments OF Values
 
     CEA_results = []
 
@@ -71,4 +72,5 @@ def CEArun(engine_in: EngineInputs):
             specific_heat = specific_heat, 
         )
         CEA_results.append(row)
+
     return(CEA_results)

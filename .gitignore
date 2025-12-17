@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code settings (optional)
+.vscode/
+
+# Virtual environments
+venv/
+env/
+
+# RocketCEA build/cache (optional)
+*.cea
+*.out
+*.tmp
+
+# Python venv
+.venv/
+venv/
