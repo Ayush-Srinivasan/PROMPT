@@ -12,6 +12,8 @@ engine_in = EngineInputs(
     divergent_angle = 15, # degrees
     contraction_ratio = 5.5,
     throat_ratio = 0.05,
+    l_star = 0.76,
+    bell_percent= "80",
     fuel_name = "RP1",
     oxidizer_name = "LOX",
 )

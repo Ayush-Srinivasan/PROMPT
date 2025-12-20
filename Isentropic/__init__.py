@@ -3,7 +3,7 @@ from .isentropic_equations import (
 )
 
 from .engine_performance import (
-    mass_flow_rate, specific_impulse, throat_area, exit_area, characteristic_velocity
+    performance_characterization
 )
 
 from .geometry import (
@@ -11,7 +11,7 @@ from .geometry import (
 )
 
 from .conical_nozzle_geometry import (
-    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length # conical nozzle equations
+    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length, conical_nozzle_graph # conical nozzle equations
 )
 
 from .bell_nozzle_geometry import (

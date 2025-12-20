@@ -1,5 +1,5 @@
 import numpy as np
-from .geometry import diameter_from_area, radius_from_area
+from .geometry import diameter_from_area, radius_from_area, line_plot
 
 # conical nozzle geometry
 def throat_length(throat_ratio, throat_area):
@@ -10,9 +10,8 @@ def chamber_diameter(throat_area, contraction_ratio):
     throat_diameter = diameter_from_area(throat_area)
     return throat_diameter * np.sqrt(contraction_ratio) # m
 
-def chamber_length(chamber_diameter):
-    D_cm = chamber_diameter * 100 # cm
-    return 10 * np.exp(0.029 * np.log(D_cm)**2 + 0.47 * np.log(D_cm) + 1.94) # m
+def chamber_length(L_star, Throat_Area, Converging_Angle, Contraction_Ratio):
+    return  (L_star - (1/3) * np.sqrt(Throat_Area / np.pi) * (1 / np.tan(np.deg2rad(Converging_Angle)))* (Contraction_Ratio**(1/3) - 1)) / Contraction_Ratio
 
 def exit_diameter(exit_area):
     return diameter_from_area(exit_area) # m
@@ -29,4 +28,28 @@ def convergent_length(throat_area, diameter_chamber, convergent_half_angle):
 
 def total_length(l_chamber, l_convergent, l_throat, l_divergent):
     return l_chamber + l_convergent + l_throat + l_divergent # m
+
+# to be used for graphs of conical nozzle or for plugging into 3D CAD softwares
+def conical_nozzle_graph(l_chamber, l_converging, l_throat, l_diverging, r_chamber, r_throat, r_exit):
+                         
+    # diverging section
+    y_1 = np.linspace(0, l_diverging, 100)
+    x_1 = line_plot(r_throat, l_diverging, r_exit, 0, y_1)
+
+    # throat section
+    y_2 = np.linspace(l_diverging, (l_throat + l_diverging), 100)
+    x_2 = r_throat * np.ones(100)
+
+    # converging section
+    y_3 = np.linspace((l_throat + l_diverging), (l_throat + l_diverging + l_converging), 100)
+    x_3 = line_plot(r_chamber, (l_throat + l_diverging + l_converging), r_throat, (l_throat + l_diverging), y_3)
+
+    # chamber section
+    y_4 = np.linspace((l_throat + l_diverging + l_converging), (l_throat + l_diverging + l_converging + l_chamber), 100)
+    x_4 = r_chamber * np.ones(100)
+    
+    x_points = np.concatenate([x_1, x_2, x_3, x_4]) # connects all points together # m
+    y_points = np.concatenate([y_1, y_2, y_3, y_4]) # connects all points together # m
+    
+    return(x_points, y_points)
 

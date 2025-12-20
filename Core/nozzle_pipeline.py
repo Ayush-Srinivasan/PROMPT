@@ -12,16 +12,15 @@ from Isentropic import (
     # isentropic_equations.py
     isentropic_eqns,
     # engine_performance.py
-    mass_flow_rate, specific_impulse, throat_area, exit_area, characteristic_velocity,           
+    performance_characterization,           
     # conical_nozzle_geometry.py                                           
-    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length, 
+    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length, conical_nozzle_graph, 
     # bell_nozzle_geometry.py                   
     initial_angle_fit, exit_angle_fit, divergent_length_bell, throat_entry_curve, throat_exit_curve, create_bell_curves,
     # geometry.py 
     diameter_from_area, radius_from_area, radius_from_diameter, area_from_radius                                                            
 )
 
-from Data import load_materials, load_propellant
 
 
 @dataclass
@@ -39,17 +38,13 @@ class EngineDesignResult:
     Isp: float          # s
     c_star: float       # m/s
 
-def engine_analysis(inputs: EngineInputs):
+def engine_analysis(inputs: EngineInputs, cea: CEA_Outputs):
     
     # isentropic equations
-    SGC, mach_exit,T_throat, T_exit, p_throat, p_exit, v_exit, ER = isentropic_eqns()
+    SGC, mach_exit,T_throat, T_exit, p_throat, p_exit, v_exit, ER = isentropic_eqns(cea.specific_heat, cea.gamma, inputs.chamber_pressure, cea.T_chamber, inputs.ambient_pressure)
 
     # characterizing equations
-    mdot = mass_flow_rate(inputs.thrust, v_exit)
-    Isp = specific_impulse(inputs.thrust, mdot)
-    a_throat = throat_area(mdot, inputs.chamber_temperature, inputs.chamber_pressure, inputs.gamma, SGC)
-    a_exit = exit_area(a_throat, ER)
-    c_star = characteristic_velocity(inputs.chamber_pressure, a_throat, mdot)
+    mdot, Isp, c_star, a_throat, a_exit = performance_characterization(inputs.thrust, v_exit, inputs.chamber_temperature, inputs.chamber_pressure, inputs.gamma, SGC, ER)
 
     return EngineDesignResult(
         mach_exit=mach_exit,
@@ -84,6 +79,9 @@ class ConicalNozzleGeometry:
 
     convergent_angle: float     # degrees
     divergent_angle: float      # degrees
+    
+    x_points: float             # datapoints for cad/nozzle sizing
+    y_points: float
 
 def conical_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     # diameters
@@ -97,12 +95,16 @@ def conical_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     radius_exit = radius_from_diameter(diameter_exit) 
     
     # lengths
-    length_chamber = chamber_length(diameter_chamber)
+    length_chamber = chamber_length(inputs.l_star, geometry.a_throat, inputs.convergent_angle, inputs.contraction_ratio)
     length_convergent = convergent_length(geometry.a_throat, diameter_chamber, inputs.convergent_angle)
     length_throat = throat_length(inputs.throat_ratio, geometry.a_throat)
     length_divergent = divergent_length(geometry.a_throat, geometry.a_exit, inputs.divergent_angle)
     length_total = total_length(length_chamber, length_convergent, length_throat, length_divergent)
     
+    # datapoints for nozzle sizing
+    x_points, y_points = conical_nozzle_graph(length_chamber, length_convergent, length_throat, length_divergent, radius_chamber, radius_throat, radius_exit)
+
+
     return ConicalNozzleGeometry(
         # diameters (m)
         diameter_chamber=diameter_chamber,
@@ -123,7 +125,11 @@ def conical_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
 
         # angles (degrees)
         convergent_angle=inputs.convergent_angle,
-        divergent_angle=inputs.divergent_angle
+        divergent_angle=inputs.divergent_angle,
+
+        # datapoints
+        x_points=x_points,
+        y_points=y_points
     )
 
     
@@ -144,17 +150,9 @@ class BellNozzleGeometry:
 
 def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit)
-    # theta_n fit parameters
-    a_n = load_fit_params["theta_n"]["a"]
-    b_n = load_fit_params["theta_n"]["b"]
-    c_n = load_fit_params["theta_n"]["c"]
 
     initial_angle = initial_angle_fit(geometry.ER, a_n, b_n, c_n) # gets initial angle
 
-    # theta_e fit parameters
-    a_e = load_fit_params["theta_e"]["a"]
-    b_e = load_fit_params["theta_e"]["b"]
-    c_e = load_fit_params["theta_e"]["c"]   
 
     exit_angle = exit_angle_fit(geometry.ER, a_e, b_e, c_e) # gets exit angle
 
