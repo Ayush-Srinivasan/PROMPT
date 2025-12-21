@@ -1,12 +1,21 @@
 from dataclasses import dataclass
+from typing import Optional
 
 @dataclass
 class EngineInputs:
     chamber_pressure: float         # Pa
-    OF_min: float
-    OF_max: float
-    OF_increment: float
+
+    # OF Single Run
+    OF: Optional[float] = None
+
+    # OF Sweep
+    OF_min: Optional[float] = None
+    OF_max: Optional[float] = None
+    OF_increment: Optional[float] = None
+
+    # Ambient Pressure Flag
     ambient_pressure: float         # Pa
+    
     thrust: float                   # N
     convergent_angle: float         # degreees
     divergent_angle: float          # degrees

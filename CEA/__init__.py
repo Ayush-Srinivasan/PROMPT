@@ -1,5 +1,5 @@
-from Core.engine_inputs import EngineInputs
-
 from .CEARunner import (
-    CEArun
+    CEArun, of_grid
 )
+
+from .CEA_Outputs import CEAOutputs

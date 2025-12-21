@@ -1,18 +1,23 @@
-import os
-from Data import load_materials, load_propellant
+import sys
+from PySide6.QtWidgets import QApplication
 
-# finds data files
-data_find = "data"
-fuel_path = os.path.join(data_find, "Propellant Densities.csv")
-oxidizer_path = os.path.join(data_find,"Oxidizer Densities.csv")
-materials_path = os.path.join(data_find, "Material Properties.csv")
+from GUI.ui import MainWindow
+from GUI.controller import MainController
+from GUI.dark_theme import apply_dark_theme
 
-# chamber material properties
-materials = load_materials(materials_path)
+def main():
+    app = QApplication(sys.argv)
 
-# propellant and oxidizer properties
-fuel = load_propellant(fuel_path)
-oxidizer = load_propellant(oxidizer_path)
+    apply_dark_theme(app)
 
-# confirmation message
-print(f"Loaded {len(fuel)} fuels, {len(oxidizer)} oxidizers, and {len(materials)} materials.")
+    w = MainWindow()
+    controller = MainController(w)  # keep reference if you want: w.controller = controller
+
+    w.showMaximized()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
+
+

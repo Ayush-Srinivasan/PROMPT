@@ -1,3 +1,3 @@
-from .data_loader import load_materials, load_propellant
+from .propellants import Fuels, Oxidizers
 
 
