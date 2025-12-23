@@ -1,12 +1,9 @@
 import numpy as np
 from rocketcea.cea_obj_w_units import CEA_Obj
-from dataclasses import dataclass
 from Core.engine_inputs import EngineInputs
 from typing import List
 from CEA.CEA_Outputs import CEAOutputs
 
-
-# example dataclass; this will take in GUI data
 
 def of_grid(engine_in: EngineInputs) -> np.ndarray:
     """
@@ -36,7 +33,7 @@ def of_grid(engine_in: EngineInputs) -> np.ndarray:
     return grid
 
 
-def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> List[CEAOutputs]:
+def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> CEAOutputs:
     """
     Compute chamber properties over a single O/F or an O/F sweep.
     Returns a list of CEAOutputs rows, one per O/F.
@@ -52,29 +49,41 @@ def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> List[CEAOutputs]:
         specific_heat_units="kJ/kg-K",
     )
 
-    OF_values = of_grid(engine_in)
+    OF_values = of_grid(engine_in).astype(float)
 
-    results: List[CEAOutputs] = []
+    # frozen or equilibrium CEA run
+    frozen_eqm = 1 if engine_in.frozen_flag else 0
+    n = OF_values.size
+
+    T_chamber = np.empty(n, dtype=float)
+    gamma = np.empty(n, dtype=float)
+    mol_wt = np.empty(n, dtype=float)
+    density = np.empty(n, dtype=float)
+    cp = np.empty(n, dtype=float)
     
-    for MR in OF_values:
-        T_chamber = cea.get_Tcomb(Pc=Pc_bar, MR=MR)
+    for i, MR in enumerate(OF_values):
+        T_chamber[i] = cea.get_Tcomb(Pc=Pc_bar, MR=MR)
 
-        mol_wt, gamma = cea.get_Chamber_MolWt_gamma(Pc=Pc_bar, MR=MR, eps=eps)
+        mw_i, gamma_i = cea.get_Chamber_MolWt_gamma(Pc=Pc_bar, MR=MR, eps=eps)
+        mol_wt[i] = mw_i
+        gamma[i] = gamma_i
 
-        density, _, _ = cea.get_Densities(Pc=Pc_bar, MR=MR, eps=eps, frozen=1, frozenAtThroat=0)
-
-        cp, _, _ = cea.get_HeatCapacities(Pc=Pc_bar, MR=MR, eps=eps, frozen=1, frozenAtThroat=0)
-
-        results.append(
-            CEAOutputs(
-                OF_Ratio=float(MR),
-                p_chamber=float(Pc_bar),
-                gamma=float(gamma),
-                T_chamber=float(T_chamber),
-                molecular_weight=float(mol_wt),
-                density_chamber=float(density),
-                specific_heat=float(cp),
-            )
+        dens_i, _, _ = cea.get_Densities(
+            Pc=Pc_bar, MR=MR, eps=eps, frozen=frozen_eqm, frozenAtThroat=0
         )
+        density[i] = dens_i
 
-    return results
+        cp_i, _, _ = cea.get_HeatCapacities(
+            Pc=Pc_bar, MR=MR, eps=eps, frozen=frozen_eqm, frozenAtThroat=0
+        )
+        cp[i] = cp_i
+
+    return CEAOutputs(
+        OF_Ratio=OF_values,
+        p_chamber=np.full(n, Pc_bar, dtype=float),
+        gamma=gamma,
+        T_chamber=T_chamber,
+        molecular_weight=mol_wt,
+        density_chamber=density,
+        specific_heat=cp,
+    )

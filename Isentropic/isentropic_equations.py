@@ -15,10 +15,10 @@ def isentropic_eqns(Specific_Heat, Gamma, Chamber_Pressure, Chamber_Temperature,
     Exit_Temperature = Chamber_Temperature * (1 + ((Gamma - 1) / 2) * Exit_Mach **2) ** -1  # K
 
     # equation 15
-    Throat_Pressure = (Chamber_Pressure/100000) * (1 + ((Gamma - 1) / 2)) ** (-Gamma / (Gamma - 1)) # Pa
+    Throat_Pressure = (Chamber_Pressure) * (1 + ((Gamma - 1) / 2)) ** (-Gamma / (Gamma - 1)) # Pa
 
     # equation 4
-    Exit_Pressure = (Chamber_Pressure/100000) * (1 + ((Gamma - 1) / 2) * Exit_Mach**2) ** (-Gamma / (Gamma - 1)) # Pa
+    Exit_Pressure = (Chamber_Pressure) * (1 + ((Gamma - 1) / 2) * Exit_Mach**2) ** (-Gamma / (Gamma - 1)) # Pa
 
     # equation 5
     Exit_Velocity = Exit_Mach * np.sqrt(Gamma * Specific_Gas_Constant * Exit_Temperature) # m/s

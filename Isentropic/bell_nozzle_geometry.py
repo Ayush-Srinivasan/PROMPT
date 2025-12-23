@@ -61,6 +61,16 @@ def create_bell_curves(initial_angle, final_angle, nozzle_length, exit_area, N_x
 
     return (x_t, y_t)
 
+def bell_nozzle_graph(a_throat, a_exit, initial_angle, exit_angle, nozzle_length):
+    x1, y1 = throat_entry_curve(a_throat)
+    x2, y2 = throat_exit_curve(a_throat, initial_angle)
+    x3, y3 = create_bell_curves(initial_angle, exit_angle, nozzle_length, a_exit, x2[-1], y2[-1])
+
+    x_points = np.concatenate([x1, x2, x3]) # connects all points together # m
+    y_points = np.concatenate([y1, y2, y3]) # connects all points together # m
+    return(x_points, y_points)
+
+
 '''
 # === Test Section to Validate Code ===
 

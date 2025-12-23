@@ -1,11 +1,13 @@
 from dataclasses import dataclass
+import numpy as np
+from numpy.typing import NDArray
 
 @dataclass 
 class CEAOutputs:
-    OF_Ratio: float
-    p_chamber: float
-    gamma: float
-    T_chamber: float
-    molecular_weight: float
-    density_chamber: float
-    specific_heat: float
+    OF_Ratio: NDArray[np.float64]
+    p_chamber: NDArray[np.float64]
+    gamma: NDArray[np.float64]
+    T_chamber: NDArray[np.float64]
+    molecular_weight: NDArray[np.float64]
+    density_chamber: NDArray[np.float64]
+    specific_heat: NDArray[np.float64]

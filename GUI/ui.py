@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
     QLineEdit, QComboBox, QPushButton, QLabel, QToolBar, QMessageBox, QCheckBox
 )
-from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction, QDoubleValidator
+from PySide6.QtCore import Qt, Signal
 from Data import Fuels, Oxidizers
 from .widgets import make_searchable
 
@@ -20,9 +20,12 @@ class MainWindow(QMainWindow):
         self._build_top_command_area()
         self._build_docks()
         self._build_center()
+        self._apply_validators() # validate numbers
         self.statusBar().showMessage("Ready")
         print("Has handler:", hasattr(self, "_on_command_tab_changed"))
         print("Handler:", getattr(self, "_on_command_tab_changed", None))
+        run_requested = Signal()
+        reset_requested = Signal()
 
 
     # --- (everything else stays the same as before) ---
@@ -179,9 +182,10 @@ class MainWindow(QMainWindow):
         self.of_min.setEnabled(False)
         self.of_max.setEnabled(False)
         self.of_inc.setEnabled(False)
-
         self.of_sweep.toggled.connect(self._on_of_sweep_toggled)        
         
+        # Frozen or Equilibrium Check
+        self.frozen = QCheckBox("Frozen Flow")
         # chamber pressure
         f1.addRow("Chamber Pressure (Bar):", self.pc)
 
@@ -194,6 +198,7 @@ class MainWindow(QMainWindow):
         f1.addRow("O/F min:", self.of_min)
         f1.addRow("O/F max:", self.of_max)
         f1.addRow("O/F step:", self.of_inc)
+        f1.addRow(self.frozen)
 
 
 
@@ -374,19 +379,11 @@ class MainWindow(QMainWindow):
     # ----- Callbacks -----
     def on_run(self):
         self.console.append("Run pressed.")
-        self.console.append(f"Pc={self.pc.text()}  O/F={self.mr.text()}  {self.ox.currentText()}/{self.fuel.currentText()}")
         self.statusBar().showMessage("Running analysis...")
-
-        # Placeholder output update
-        self.results_table.setItem(0, 1, QTableWidgetItem("~ 300 s"))
-        self.results_table.setItem(2, 1, QTableWidgetItem("~ 1600 m/s"))
-        self.statusBar().showMessage("Complete")
+        self.run_requested.emit()
 
     def on_reset(self):
-        self.pc.clear()
-        self.mr.clear()
-        self.fuel.setCurrentIndex(0)
-        self.ox.setCurrentIndex(0)
+        self.reset_requested.emit()
 
         # O/F sweep fields (QLineEdit)
         if hasattr(self, "of_min"):
@@ -420,6 +417,38 @@ class MainWindow(QMainWindow):
 
         self.console.append("Reset inputs.")
         self.statusBar().showMessage("Reset")
+
+
+    def _apply_validators(self):
+        def dv(lo, hi, dec=6):
+            v = QDoubleValidator(lo, hi, dec, self)
+            v.setNotation(QDoubleValidator.StandardNotation)
+            return v
+
+        # Chamber / propellants
+        # Pc is labeled bar in your UI
+        self.pc.setValidator(dv(0.1, 5000.0, 3))          # bar (typical range)
+        self.mr.setValidator(dv(0.1, 20.0, 4))           # O/F
+
+        self.of_min.setValidator(dv(0.1, 50.0, 4))
+        self.of_max.setValidator(dv(0.1, 50.0, 4))
+        self.of_inc.setValidator(dv(0.001, 10.0, 4))
+
+        # Nozzle / performance
+        self.thrust.setValidator(dv(0.0, 1e8, 3))        # N
+
+        self.amb.setValidator(dv(0.0, 50.0, 5))          # bar
+
+        self.convergence_angle.setValidator(dv(1.0, 75.0, 2))  # deg
+        self.divergence_angle.setValidator(dv(1.0, 60.0, 2))   # deg
+
+        self.cr.setValidator(dv(1.0, 50.0, 3))           # Ac/At
+
+        # "throat_ratio" is ambiguous; you currently allow e.g. 0.05.
+        # Enforce positive; keep broad until you finalize meaning.
+        self.throat_ratio.setValidator(dv(1e-6, 1e2, 6))
+
+        self.lstar.setValidator(dv(0.01, 50.0, 4))       # m
 
     def _toggle_left(self):
         self.left_dock.setVisible(not self.left_dock.isVisible())
