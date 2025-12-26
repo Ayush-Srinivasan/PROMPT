@@ -40,7 +40,7 @@ class EngineDesignResult:
 def engine_analysis(inputs: EngineInputs, cea: CEAOutputs):
     
     # isentropic equations
-    SGC, mach_exit,T_throat, T_exit, p_throat, p_exit, v_exit, ER = isentropic_eqns(cea.specific_heat, cea.gamma, inputs.chamber_pressure, cea.T_chamber, inputs.ambient_pressure)
+    SGC, mach_exit, T_throat, T_exit, p_throat, p_exit, v_exit, ER = isentropic_eqns(cea.specific_heat, cea.gamma, inputs.chamber_pressure, cea.T_chamber, inputs.ambient_pressure)
 
     # characterizing equations
     mdot, Isp, c_star, a_throat, a_exit = performance_characterization(inputs.thrust, v_exit, cea.T_chamber, inputs.chamber_pressure, cea.gamma, SGC, ER)

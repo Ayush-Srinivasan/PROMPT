@@ -1,6 +1,6 @@
 # GUI/controller.py
 from __future__ import annotations
-
+import numpy as np
 from PySide6.QtWidgets import QTableWidgetItem, QMessageBox
 
 from Core.engine_inputs import EngineInputs
@@ -104,7 +104,7 @@ class MainController:
 
         if "bell" in noz_text:
             nozzle_type = "bell"
-            bell_percent = v.bell_pct.currentText()
+            bell_percent = int(v.bell_pct.currentText().split()[0])
         else:
             nozzle_type = "conical"
             bell_percent = None
@@ -144,24 +144,40 @@ class MainController:
     # -----------------------
     def _write_results(self, results):
         v = self.view
+        if not hasattr(v, "results_table"):
+            return
+
+        # O/F array (adjust field name if yours differs)
+        OF = np.asarray(results.cea.OF_Ratio)
+
         perf = results.perf
+        Isp = np.asarray(perf.Isp)
+        cstar = np.asarray(perf.c_star)
+        vexit = np.asarray(perf.v_exit)
+        mdot = np.asarray(perf.mdot)
 
-        import numpy as np
-        idx = int(np.argmax(perf.Isp))  # choose the best-performing point
+        Tc = np.asarray(results.cea.T_chamber)   # chamber temperature from CEAOutputs
+        Tt = np.asarray(perf.T_throat)           # throat temperature from isentropic/analysis
+        Te = np.asarray(perf.T_exit)             # exit temperature from isentropic/analysis
 
-        def set_row(row_idx: int, value: str):
-            v.results_table.setItem(row_idx, 1, QTableWidgetItem(value))
+        n = OF.size
+        v.results_table.setRowCount(n)
 
-        # ui.py rows: ["Isp (vac)", "Isp (sea)", "c*", "At", "Ae", "mdot"]
-        set_row(0, f"{float(perf.Isp[idx]):.2f} s")
+        for i in range(n):
+            row = [
+                f"{float(OF[i]):.3f}",
+                f"{float(Isp[i]):.2f}",
+                f"{float(cstar[i]):.1f}",
+                f"{float(vexit[i]):.1f}",
+                f"{float(mdot[i]):.6f}",
+                f"{float(Tc[i]):.1f}",
+                f"{float(Tt[i]):.1f}",
+                f"{float(Te[i]):.1f}",
+            ]
+            for j, txt in enumerate(row):
+                v.results_table.setItem(i, j, QTableWidgetItem(txt))
 
-        # You are not currently computing sea-level Isp separately; keep as placeholder or reuse
-        set_row(1, "—")
-
-        set_row(2, f"{float(perf.c_star[idx]):.1f} m/s")
-        set_row(3, f"{float(perf.a_throat[idx]):.6e} m²")
-        set_row(4, f"{float(perf.a_exit[idx]):.6e} m²")
-        set_row(5, f"{float(perf.mdot[idx]):.6f} kg/s")
+        v.results_table.resizeColumnsToContents()
 
 
     # -----------------------

@@ -322,13 +322,12 @@ class MainWindow(QMainWindow):
         results = QWidget()
         results_layout = QVBoxLayout(results)
 
-        self.results_table = QTableWidget(6, 2)
-        self.results_table.setHorizontalHeaderLabels(["Parameter", "Value"])
-        rows = ["Isp (vac)", "Isp (sea)", "c*", "At", "Ae", "mdot"]
-        for i, name in enumerate(rows):
-            self.results_table.setItem(i, 0, QTableWidgetItem(name))
-            self.results_table.setItem(i, 1, QTableWidgetItem("—"))
-
+        self.results_table = QTableWidget(0, 8)
+        self.results_table.setHorizontalHeaderLabels([
+            "O/F", "Isp (s)", "c* (m/s)", "Exit Velocity (m/s)", "mdot (kg/s)",
+            "Chamber Temp (K)", "Throat Temp (K)", "Exit Temp (K)"
+            ])
+        
         results_layout.addWidget(self.results_table)
         tabs.addTab(results, "Results")
 
