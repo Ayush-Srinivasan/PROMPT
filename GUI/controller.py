@@ -4,7 +4,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import QTableWidgetItem, QMessageBox
 
 from Core.engine_inputs import EngineInputs
-from Core.engine_analysis import run_engine_analysis  # adjust to your real function name
+from Core.engine_analysis import engine_design_run
 
 BAR_TO_PA = 1e5 # unit conversion from bar to pascals
 
@@ -25,7 +25,7 @@ class MainController:
 
     def on_reset(self):
         v = self.view
-        v.on_reset()  # reuse your existing UI reset logic (fine for now)
+        v._do_reset_ui()
 
         # also clear outputs table
         for r in range(v.results_table.rowCount()):
@@ -45,7 +45,7 @@ class MainController:
         v.statusBar().showMessage("Running analysis...")
 
         try:
-            results = run_engine_analysis(eng_in)  # must return something we can display
+            results = engine_design_run(eng_in)  # must return something we can display
         except Exception as e:
             QMessageBox.critical(v, "Run failed", repr(e))
             v.console.append(f"Run failed: {repr(e)}")
@@ -143,28 +143,26 @@ class MainController:
     # Write outputs
     # -----------------------
     def _write_results(self, results):
-        """
-        Adapt this to whatever Core.engine_analysis returns.
-        For now I assume a dict-like object with keys:
-        'isp_vac', 'isp_sl', 'cstar', 'At', 'Ae', 'mdot'
-        """
         v = self.view
+        perf = results.perf
+
+        import numpy as np
+        idx = int(np.argmax(perf.Isp))  # choose the best-performing point
 
         def set_row(row_idx: int, value: str):
             v.results_table.setItem(row_idx, 1, QTableWidgetItem(value))
 
-        # rows in ui.py: ["Isp (vac)", "Isp (sea)", "c*", "At", "Ae", "mdot"]
-        if isinstance(results, dict):
-            if "isp_vac" in results: set_row(0, f"{results['isp_vac']:.3f} s")
-            if "isp_sl"  in results: set_row(1, f"{results['isp_sl']:.3f} s")
-            if "cstar"   in results: set_row(2, f"{results['cstar']:.3f} m/s")
-            if "At"      in results: set_row(3, f"{results['At']:.6e} m²")
-            if "Ae"      in results: set_row(4, f"{results['Ae']:.6e} m²")
-            if "mdot"    in results: set_row(5, f"{results['mdot']:.6f} kg/s")
+        # ui.py rows: ["Isp (vac)", "Isp (sea)", "c*", "At", "Ae", "mdot"]
+        set_row(0, f"{float(perf.Isp[idx]):.2f} s")
 
-        # Optional: also populate report tab
-        if hasattr(v, "report_view") and isinstance(results, dict) and "report" in results:
-            v.report_view.setPlainText(results["report"])
+        # You are not currently computing sea-level Isp separately; keep as placeholder or reuse
+        set_row(1, "—")
+
+        set_row(2, f"{float(perf.c_star[idx]):.1f} m/s")
+        set_row(3, f"{float(perf.a_throat[idx]):.6e} m²")
+        set_row(4, f"{float(perf.a_exit[idx]):.6e} m²")
+        set_row(5, f"{float(perf.mdot[idx]):.6f} kg/s")
+
 
     # -----------------------
     # parsing helpers

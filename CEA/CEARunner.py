@@ -5,30 +5,44 @@ from typing import List
 from CEA.CEA_Outputs import CEAOutputs
 
 
+
 def of_grid(engine_in: EngineInputs) -> np.ndarray:
     """
     Returns an array of mixture ratios to evaluate.
-    Supports:
-      - sweep mode: OF_min, OF_max, OF_increment > 0
-      - single mode: (recommended) engine_in has OF_min == OF_max OR OF_increment <= 0
-    """
-    of_min = engine_in.OF_min
-    of_max = engine_in.OF_max
-    step = engine_in.OF_increment
 
-    # Basic validation
-    if of_min <= 0 or of_max <= 0:
+    Modes:
+    - Single: engine_in.OF is not None
+    - Sweep: engine_in.OF_min / OF_max / OF_increment are all not None
+    """
+    # -------------------------
+    # Single-point mode
+    # -------------------------
+    if engine_in.OF is not None:
+        of = float(engine_in.OF)
+        if of <= 0.0:
+            raise ValueError("O/F must be positive.")
+        return np.array([of], dtype=float)
+
+    # -------------------------
+    # Sweep mode (require fields)
+    # -------------------------
+    if engine_in.OF_min is None or engine_in.OF_max is None or engine_in.OF_increment is None:
+        raise ValueError("Sweep mode requires OF_min, OF_max, and OF_increment (or provide OF for single mode).")
+
+    of_min = float(engine_in.OF_min)
+    of_max = float(engine_in.OF_max)
+    step   = float(engine_in.OF_increment)
+
+    if of_min <= 0.0 or of_max <= 0.0:
         raise ValueError("O/F values must be positive.")
     if of_min > of_max:
         raise ValueError("O/F min must be <= O/F max.")
+    if step <= 0.0:
+        raise ValueError("O/F step must be > 0.")
 
-    # Single-point mode if step is None or <= 0 or min==max
-    if (step is None) or (step <= 0) or (abs(of_max - of_min) < 1e-12):
-        return np.array([of_min], dtype=float)
-
-    # Sweep mode: include endpoint robustly
+    # include endpoint robustly
     n = int(np.floor((of_max - of_min) / step + 1.0000001)) + 1
-    grid = of_min + step * np.arange(n)
+    grid = of_min + step * np.arange(n, dtype=float)
     grid = grid[grid <= of_max + 1e-12]
     return grid
 

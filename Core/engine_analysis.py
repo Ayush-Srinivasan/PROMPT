@@ -9,33 +9,22 @@ from CEA.CEARunner import CEArun
 
 
 @dataclass
-class DesignPoint:
+class FullDesignResult:
     cea: CEAOutputs
     perf: EngineDesignResult
     nozzle: Union[ConicalNozzleGeometry, BellNozzleGeometry]
 
 
-@dataclass
-class DesignSweepResult:
-    points: List[DesignPoint] = []
-
-
-def run_full_design(inputs: EngineInputs) -> DesignSweepResult:
-    cea_rows = CEArun(inputs)  # uses default eps=40.0 inside CEArun
-
-    if not cea_rows:
+def engine_design_run(inputs: EngineInputs) -> FullDesignResult:
+    cea = CEArun(inputs)  
+    if cea is None:
         raise ValueError("CEA returned no results.")
 
-    points:List[DesignPoint] = []
-    for cea in cea_rows:
-        print("engine_analysis is:", engine_analysis)
-        perf = engine_analysis(inputs, cea)
+    perf = engine_analysis(inputs, cea)  # returns arrays in EngineDesignResult
 
-        if inputs.nozzle_type == "bell":
-            nozzle = bell_nozzle_sizing(perf, inputs)
-        else:
-            nozzle = conical_nozzle_sizing(perf, inputs)
+    if inputs.nozzle_type == "bell":
+        nozzle = bell_nozzle_sizing(perf, inputs)
+    else:
+        nozzle = conical_nozzle_sizing(perf, inputs)
 
-        points.append(DesignPoint(cea=cea, perf=perf, nozzle=nozzle))
-
-    return DesignSweepResult(points=points)
+    return FullDesignResult(cea=cea, perf=perf, nozzle=nozzle)

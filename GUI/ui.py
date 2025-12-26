@@ -13,6 +13,11 @@ from .widgets import make_searchable
 
 
 class MainWindow(QMainWindow):
+
+    # gives commands for run and reset requests
+    run_requested = Signal()
+    reset_requested = Signal()
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PROMPT - Rocket Engine Design Tool")
@@ -24,8 +29,6 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Ready")
         print("Has handler:", hasattr(self, "_on_command_tab_changed"))
         print("Handler:", getattr(self, "_on_command_tab_changed", None))
-        run_requested = Signal()
-        reset_requested = Signal()
 
 
     # --- (everything else stays the same as before) ---
@@ -186,6 +189,8 @@ class MainWindow(QMainWindow):
         
         # Frozen or Equilibrium Check
         self.frozen = QCheckBox("Frozen Flow")
+
+
         # chamber pressure
         f1.addRow("Chamber Pressure (Bar):", self.pc)
 
@@ -313,9 +318,9 @@ class MainWindow(QMainWindow):
         tabs = QTabWidget()
         tabs.setDocumentMode(True)  # looks more "app-like"
 
-        # --- Tab 1: Summary (your existing results table) ---
-        summary = QWidget()
-        summary_layout = QVBoxLayout(summary)
+        # Results
+        results = QWidget()
+        results_layout = QVBoxLayout(results)
 
         self.results_table = QTableWidget(6, 2)
         self.results_table.setHorizontalHeaderLabels(["Parameter", "Value"])
@@ -324,16 +329,16 @@ class MainWindow(QMainWindow):
             self.results_table.setItem(i, 0, QTableWidgetItem(name))
             self.results_table.setItem(i, 1, QTableWidgetItem("—"))
 
-        summary_layout.addWidget(self.results_table)
-        tabs.addTab(summary, "Summary")
+        results_layout.addWidget(self.results_table)
+        tabs.addTab(results, "Results")
 
-        # --- Tab 2: Plots (start with selector + placeholder) ---
+        # Tab 2: Plots
         plots = QWidget()
         plots_layout = QVBoxLayout(plots)
 
         top_row = QHBoxLayout()
         self.metric_combo = QComboBox()
-        self.metric_combo.addItems(["Isp (vac) vs O/F", "c* vs O/F", "Tc vs O/F"])
+        self.metric_combo.addItems(["Isp vs O/F", "c* vs O/F", "T vs O/F"])
         top_row.addWidget(QLabel("Metric:"))
         top_row.addWidget(self.metric_combo)
         top_row.addStretch(1)
@@ -345,21 +350,15 @@ class MainWindow(QMainWindow):
 
         tabs.addTab(plots, "Plots")
 
-        # --- Tab 3: Visualization ---
+        # Visualization
         viz = QLabel("Nozzle / injector visualization will appear here.")
         viz.setAlignment(Qt.AlignCenter)
         tabs.addTab(viz, "Visualization")
 
-        # --- Tab 4: Drawing ---
+        # Drawing
         drawing = QLabel("Dimensioned drawing output will appear here.")
         drawing.setAlignment(Qt.AlignCenter)
         tabs.addTab(drawing, "Drawing")
-
-        # --- Tab 5: Report ---
-        self.report_view = QTextEdit()
-        self.report_view.setReadOnly(True)
-        self.report_view.setPlaceholderText("Run analysis to generate a report preview...")
-        tabs.addTab(self.report_view, "Report")
 
         return tabs
     # ----- Center workspace -----
@@ -382,10 +381,14 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Running analysis...")
         self.run_requested.emit()
 
-    def on_reset(self):
-        self.reset_requested.emit()
 
-        # O/F sweep fields (QLineEdit)
+    def _do_reset_ui(self):
+        # --- move ALL your field-clearing logic here ---
+        # O/F sweep fields
+        if hasattr(self, "pc"):
+            self.pc.clear()
+        if hasattr(self, "mr"):
+            self.mr.clear()
         if hasattr(self, "of_min"):
             self.of_min.clear()
         if hasattr(self, "of_max"):
@@ -393,24 +396,20 @@ class MainWindow(QMainWindow):
         if hasattr(self, "of_inc"):
             self.of_inc.clear()
         if hasattr(self, "of_sweep"):
-            self.of_sweep.setChecked(False)  # ensures single O/F mode
+            self.of_sweep.setChecked(False)
 
-        # Thrust (if QLineEdit)
         if hasattr(self, "thrust"):
             self.thrust.clear()
 
-        # --- Nozzle section ---
         self.noz_type.setCurrentIndex(0)
         if hasattr(self, "bell_pct"):
             self.bell_pct.setCurrentIndex(0)
 
-        # Ambient pressure mode
         if hasattr(self, "std_amb"):
-            self.std_amb.setChecked(True)  # triggers your toggle handler if connected
+            self.std_amb.setChecked(True)
         if hasattr(self, "amb"):
-            self.amb.setText("1.01325")    # if your UI is in bar; use "101325" if Pa
+            self.amb.setText("1.01325")
 
-        # Nozzle numeric fields (QLineEdit) — fix names to match your actual widgets
         for name in ["convergence_angle", "divergence_angle", "cr", "throat_ratio", "lstar"]:
             if hasattr(self, name):
                 getattr(self, name).clear()
@@ -418,6 +417,8 @@ class MainWindow(QMainWindow):
         self.console.append("Reset inputs.")
         self.statusBar().showMessage("Reset")
 
+    def on_reset(self):
+       self.reset_requested.emit()
 
     def _apply_validators(self):
         def dv(lo, hi, dec=6):

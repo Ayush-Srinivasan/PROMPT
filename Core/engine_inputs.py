@@ -3,32 +3,36 @@ from typing import Optional
 
 @dataclass
 class EngineInputs:
-    chamber_pressure: float         # Pa
+    # Required  
+    chamber_pressure: float          # Pa
+    thrust: float                   # N
 
-    # OF Single Run
+    nozzle_type: str                # "conical" or "bell"
+    convergent_angle: float         # deg
+    divergent_angle: float          # deg
+    contraction_ratio: float        # Ac/At
+    throat_ratio: float
+    l_star: float
+
+    bell_percent: str
+    fuel_name: str
+    oxidizer_name: str
+
+    # Defaults 
+    
+    # Ambient pressure
+    external_pressure_flag: bool = False
+    ambient_pressure: float = 101325.0   # Pa
+
+    # frozen vs equilibrium
+    frozen_flag: bool = False
+
+    # O/F single
     OF: Optional[float] = None
 
-    # OF Sweep
+    # O/F sweep
     OF_min: Optional[float] = None
     OF_max: Optional[float] = None
     OF_increment: Optional[float] = None
 
-    # Ambient Pressure Flag
-    external_pressure_flag: bool
-    ambient_pressure: float         # Pa
-
-    # frozen or equilibrium
-    frozen_flag: bool
-    
-    thrust: float                   # N
-
-    nozzle_type: str                # nozzle type
-    convergent_angle: float         # degreees
-    divergent_angle: float          # degrees
-    contraction_ratio: float        # should be from 2-5 for small engines and 5-8 for large engines
-    throat_ratio: float             # should be between 0.05 and 0.2 for conical nozzles
-    l_star: float                   # check documentation
-    bell_percent: str                # bell nozzle length percentage
-    fuel_name: str 
-    oxidizer_name: str 
-    source: str = "GUI"             # or "CEA"
+    source: str = "GUI"
