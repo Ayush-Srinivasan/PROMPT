@@ -1,13 +1,17 @@
 # GUI/ui.py
 
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QDockWidget, QTabWidget,
+    QMainWindow, QWidget, QDockWidget, QTabWidget, QApplication,
     QTreeWidget, QTreeWidgetItem, QTextEdit, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
-    QLineEdit, QComboBox, QPushButton, QLabel, QToolBar, QMessageBox, QCheckBox
+    QLineEdit, QComboBox, QPushButton, QLabel, QToolBar, QMessageBox, QCheckBox, 
 )
-from PySide6.QtGui import QAction, QDoubleValidator
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QAction, QDoubleValidator, QActionGroup, QGuiApplication
+from PySide6.QtCore import Qt, Signal, QSettings, QSignalBlocker
+from .themes import apply_theme
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
 from Data import Fuels, Oxidizers
 from .widgets import make_searchable
 
@@ -20,15 +24,16 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.settings = QSettings("PROMPT", "RocketEngineDesignTool")
+        self._theme_mode = self.settings.value("theme/mode", "system")
+
         self.setWindowTitle("PROMPT - Rocket Engine Design Tool")
         self._build_menu()
         self._build_top_command_area()
         self._build_docks()
         self._build_center()
-        self._apply_validators() # validate numbers
+        self._apply_validators()
         self.statusBar().showMessage("Ready")
-        print("Has handler:", hasattr(self, "_on_command_tab_changed"))
-        print("Handler:", getattr(self, "_on_command_tab_changed", None))
 
 
     # --- (everything else stays the same as before) ---
@@ -50,6 +55,55 @@ class MainWindow(QMainWindow):
         help_menu = self.menuBar().addMenu("Help")
         help_menu.addAction(self._action("About", self._about))
 
+        settings_menu = self.menuBar().addMenu("Settings")
+
+        self.theme_group = QActionGroup(self)
+        self.theme_group.setExclusive(True)
+
+        self.action_theme_system = QAction("Theme: System (Windows)", self, checkable=True)
+        self.action_theme_light  = QAction("Theme: Light", self, checkable=True)
+        self.action_theme_dark   = QAction("Theme: Dark", self, checkable=True)
+        self.action_theme_barbie = QAction("Theme: Barbie", self, checkable=True)
+
+        for a in (
+            self.action_theme_system,
+            self.action_theme_light,
+            self.action_theme_dark,
+            self.action_theme_barbie,
+        ):
+            self.theme_group.addAction(a)
+            settings_menu.addAction(a)
+
+        # Map actions → theme string
+        self._theme_action_map = {
+            self.action_theme_system: "system",
+            self.action_theme_light:  "light",
+            self.action_theme_dark:   "dark",
+            self.action_theme_barbie: "barbie",
+        }
+
+        # ONE handler for all theme changes
+        self.theme_group.triggered.connect(self._on_theme_action_selected)
+
+        # Restore saved theme WITHOUT triggering handler
+        mode = (self._theme_mode or "system").strip().lower()
+        with QSignalBlocker(self.theme_group):
+            if mode == "dark":
+                self.action_theme_dark.setChecked(True)
+            elif mode == "light":
+                self.action_theme_light.setChecked(True)
+            elif mode == "barbie":
+                self.action_theme_barbie.setChecked(True)
+            else:
+                self.action_theme_system.setChecked(True)
+
+        # Apply once
+        self._apply_theme_mode(mode)
+
+    def _on_theme_action_selected(self, action: QAction):
+        mode = self._theme_action_map.get(action, "system")
+        self._apply_theme_mode(mode)
+        
     def _action(self, text, slot):
         act = QAction(text, self)
         act.triggered.connect(slot)
@@ -337,15 +391,21 @@ class MainWindow(QMainWindow):
 
         top_row = QHBoxLayout()
         self.metric_combo = QComboBox()
-        self.metric_combo.addItems(["Isp vs O/F", "c* vs O/F", "T vs O/F"])
+        self.metric_combo.addItems(["Isp vs O/F", "Velocity vs O/F", "T vs O/F"])
+        self.metric_combo.currentIndexChanged.connect(self._render_selected_plot)
         top_row.addWidget(QLabel("Metric:"))
         top_row.addWidget(self.metric_combo)
         top_row.addStretch(1)
 
         plots_layout.addLayout(top_row)
-        self.plot_placeholder = QLabel("Plot will be rendered here.")
-        self.plot_placeholder.setAlignment(Qt.AlignCenter)
-        plots_layout.addWidget(self.plot_placeholder, 1)
+        self.plot_widget = QWidget()
+        self.plot_widget_layout = QVBoxLayout(self.plot_widget)
+
+        # Keep references to avoid GC
+        self._plot_toolbar = None
+        self._plot_canvas = None
+
+        plots_layout.addWidget(self.plot_widget, 1)
 
         tabs.addTab(plots, "Plots")
 
@@ -358,6 +418,8 @@ class MainWindow(QMainWindow):
         drawing = QLabel("Dimensioned drawing output will appear here.")
         drawing.setAlignment(Qt.AlignCenter)
         tabs.addTab(drawing, "Drawing")
+
+
 
         return tabs
     # ----- Center workspace -----
@@ -379,7 +441,6 @@ class MainWindow(QMainWindow):
         self.console.append("Run pressed.")
         self.statusBar().showMessage("Running analysis...")
         self.run_requested.emit()
-
 
     def _do_reset_ui(self):
         # --- move ALL your field-clearing logic here ---
@@ -450,6 +511,33 @@ class MainWindow(QMainWindow):
 
         self.lstar.setValidator(dv(0.01, 50.0, 4))       # m
 
+    def set_plot_figures(self, figures: dict):
+        self._figures = figures
+        self._render_selected_plot()
+
+    def _render_selected_plot(self):
+        if not hasattr(self, "_figures") or not self._figures:
+            return
+
+        key = self.metric_combo.currentText()
+        fig = self._figures.get(key)
+        if fig is None:
+            return
+
+        # Clear old widgets from plot_widget_layout
+        while self.plot_widget_layout.count():
+            item = self.plot_widget_layout.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.setParent(None)
+
+        # Create new canvas + toolbar for this figure
+        self._plot_canvas = FigureCanvas(fig)
+        self._plot_toolbar = NavigationToolbar(self._plot_canvas, self)
+
+        self.plot_widget_layout.addWidget(self._plot_toolbar)
+        self.plot_widget_layout.addWidget(self._plot_canvas)
+
     def _toggle_left(self):
         self.left_dock.setVisible(not self.left_dock.isVisible())
 
@@ -464,4 +552,24 @@ class MainWindow(QMainWindow):
 
     def _noop(self):
         self.statusBar().showMessage("Not implemented yet")
+
+    def is_dark_mode(self) -> bool:
+        # For plotting: treat dark and barbie as "dark" plots
+        return self.theme_mode() in ("dark", "barbie")
+    
+    def theme_mode(self) -> str:
+    # returns: "system" | "light" | "dark" | "barbie"
+        return getattr(self, "_theme_mode", "system")
+
+    def _apply_theme_mode(self, mode: str):
+        self._theme_mode = mode
+
+        if hasattr(self, "settings") and self.settings is not None:
+            self.settings.setValue("theme/mode", mode)
+
+        app = QApplication.instance()
+        apply_theme(app, mode)
+
+        if hasattr(self, "controller"):
+            self.controller.on_theme_changed()
 

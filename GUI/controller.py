@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QTableWidgetItem, QMessageBox
 
 from Core.engine_inputs import EngineInputs
 from Core.engine_analysis import engine_design_run
+from Core.plots import plot_isp_vs_of, plot_temp_vs_of, plot_velocity_vs_of
 
 BAR_TO_PA = 1e5 # unit conversion from bar to pascals
 
@@ -45,17 +46,24 @@ class MainController:
         v.statusBar().showMessage("Running analysis...")
 
         try:
-            results = engine_design_run(eng_in)  # must return something we can display
+            results = engine_design_run(eng_in)
         except Exception as e:
             QMessageBox.critical(v, "Run failed", repr(e))
             v.console.append(f"Run failed: {repr(e)}")
             v.statusBar().showMessage("Run failed")
             return
 
+        # Cache results ONLY after they exist
+        self._last_results = results
+
         self._write_results(results)
         v.console.append("Complete.")
         v.statusBar().showMessage("Complete")
-
+        
+    def on_theme_changed(self):
+        if getattr(self, "_last_results", None) is None:
+            return
+        self._write_results(self._last_results)
     # -----------------------
     # Build EngineInputs
     # -----------------------
@@ -177,7 +185,18 @@ class MainController:
             for j, txt in enumerate(row):
                 v.results_table.setItem(i, j, QTableWidgetItem(txt))
 
-        v.results_table.resizeColumnsToContents()
+        theme = self.view.theme_mode()  # expects "system" | "light" | "dark" | "barbie"
+
+        fig_isp = plot_isp_vs_of(OF, Isp, theme=theme)
+        fig_vel = plot_velocity_vs_of(OF, vexit, cstar, theme=theme)
+        fig_tmp = plot_temp_vs_of(OF, Tc, Tt, Te, theme=theme)
+
+        self.view.set_plot_figures({
+            "Isp vs O/F": fig_isp,
+            "Velocity vs O/F": fig_vel,
+            "T vs O/F": fig_tmp,
+        })
+        v.console.append(f"Plot theme = {theme}")
 
 
     # -----------------------
