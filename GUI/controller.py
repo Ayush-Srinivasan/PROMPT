@@ -196,7 +196,6 @@ class MainController:
             "Velocity vs O/F": fig_vel,
             "T vs O/F": fig_tmp,
         })
-        v.console.append(f"Plot theme = {theme}")
 
 
     # -----------------------

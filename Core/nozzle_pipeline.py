@@ -136,7 +136,7 @@ class BellNozzleGeometry:
     chamber_area: NDArray[np.float64]     # m^2
 
 def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
-    nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit)
+    nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit, inputs.bell_percent/100)
 
     (a_n, b_n, c_n), (a_e, b_e, c_e) = get_rao_coeffs(inputs.bell_percent) # gets coefficients based on engine inputs
 
@@ -147,9 +147,6 @@ def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     # gets radiuses and length
     throat_radius = radius_from_area(geometry.a_throat)
     exit_radius = radius_from_area(geometry.a_exit)
-
-    # If CAD includes filleting or blending at the throat, chamber radius is not correct, therefore CR is incorrect as well
-    # This value may underestimate true chamber radius. If so, use true chamber geometry
     l_chamber = chamber_length(inputs.l_star, geometry.a_throat, inputs.convergent_angle, inputs.contraction_ratio)
 
     diameter_chamber = chamber_diameter(geometry.a_throat, inputs.contraction_ratio)

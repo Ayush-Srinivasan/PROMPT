@@ -1,5 +1,6 @@
 import numpy as np
 from .geometry import diameter_from_area, radius_from_area, line_plot
+from Core.engine_analysis import FullDesignResult
 
 # conical nozzle geometry
 def throat_length(throat_ratio, throat_area):
@@ -30,26 +31,25 @@ def total_length(l_chamber, l_convergent, l_throat, l_divergent):
     return l_chamber + l_convergent + l_throat + l_divergent # m
 
 # to be used for graphs of conical nozzle or for plugging into 3D CAD softwares
-def conical_nozzle_graph(l_chamber, l_converging, l_throat, l_diverging, r_chamber, r_throat, r_exit):
+def conical_nozzle_graph(result: FullDesignResult):
                          
     # diverging section
-    y_1 = np.linspace(0, l_diverging, 100)
-    x_1 = line_plot(r_throat, l_diverging, r_exit, 0, y_1)
+    y_1 = np.linspace(0, result.nozzle.length_divergent, 100)
+    x_1 = line_plot(result.nozzle.radius_throat, result.nozzle.length_divergent, result.nozzle.radius_exit, 0, y_1)
 
     # throat section
-    y_2 = np.linspace(l_diverging, (l_throat + l_diverging), 100)
-    x_2 = r_throat * np.ones(100)
+    y_2 = np.linspace(result.nozzle.length_divergent, (result.nozzle.length_throat + result.nozzle.length_divergent), 100)
+    x_2 = result.nozzle.radius_throat * np.ones(100)
 
     # converging section
-    y_3 = np.linspace((l_throat + l_diverging), (l_throat + l_diverging + l_converging), 100)
-    x_3 = line_plot(r_chamber, (l_throat + l_diverging + l_converging), r_throat, (l_throat + l_diverging), y_3)
+    y_3 = np.linspace((result.nozzle.radius_throat + result.nozzle.length_divergent), (result.nozzle.radius_throat + result.nozzle.length_divergent + result.nozzle.length_convergent), 100)
+    x_3 = line_plot(result.nozzle.radius_chamber, (result.nozzle.radius_throat + result.nozzle.length_divergent + result.nozzle.length_convergent), result.nozzle.radius_throat, (result.nozzle.radius_throat + result.nozzle.length_divergent), y_3)
 
     # chamber section
-    y_4 = np.linspace((l_throat + l_diverging + l_converging), (l_throat + l_diverging + l_converging + l_chamber), 100)
-    x_4 = r_chamber * np.ones(100)
+    y_4 = np.linspace((result.nozzle.radius_throat + result.nozzle.length_divergent + result.nozzle.length_convergent), (result.nozzle.radius_throat + result.nozzle.length_divergent + result.nozzle.length_convergent + l_chamber), 100)
+    x_4 = result.nozzle.radius_chamber * np.ones(100)
     
-    x_points = np.concatenate([x_1, x_2, x_3, x_4]) # connects all points together # m
-    y_points = np.concatenate([y_1, y_2, y_3, y_4]) # connects all points together # m
+    x_points = np.concatenate([x_1, x_2, x_3, x_4]) # radial
+    y_points = np.concatenate([y_1, y_2, y_3, y_4]) # axial
     
     return(x_points, y_points)
-

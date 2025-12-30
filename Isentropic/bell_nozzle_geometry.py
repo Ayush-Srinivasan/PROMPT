@@ -1,9 +1,9 @@
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 from Isentropic.geometry import radius_from_area
-
-
+from __future__ import annotations
+from Core.engine_analysis import FullDesignResult
+from Core.engine_inputs import EngineInputs
 
 
 
@@ -61,44 +61,69 @@ def create_bell_curves(initial_angle, final_angle, nozzle_length, exit_area, N_x
 
     return (x_t, y_t)
 
-def bell_nozzle_graph(a_throat, a_exit, initial_angle, exit_angle, nozzle_length):
-    x1, y1 = throat_entry_curve(a_throat)
-    x2, y2 = throat_exit_curve(a_throat, initial_angle)
-    x3, y3 = create_bell_curves(initial_angle, exit_angle, nozzle_length, a_exit, x2[-1], y2[-1])
+def chamber_converging_curve(chamber_length, converging_length, CR, a_throat, x1, y1):
+    A_c = CR * a_throat
+    r_c = radius_from_area(A_c)
 
-    x_points = np.concatenate([x1, x2, x3]) # connects all points together # m
-    y_points = np.concatenate([y1, y2, y3]) # connects all points together # m
+    x0, y0 = -converging_length, r_c        # chamber end
+    x2, y2 = x1[0], y1[0]          # entry start
+
+    m0 = 0.0                           # chamber wall slope
+    dx = x1[1] - x1[0]
+    dy = y1[1] - y1[0]
+    m2 = dy / dx                       # throat-entry slope
+
+    # Solve for control point C
+    xc = (y0 - y2 + m2 * x2) / m2
+    yc = y0
+
+    # Bézier evaluation
+    t = np.linspace(0.0, 1.0, 100)
+
+    x_converging = (1 - t)**2 * x0 + 2*(1 - t)*t * xc + t**2 * x2
+    y_converging = (1 - t)**2 * y0 + 2*(1 - t)*t * yc + t**2 * y2
+
+    x_ch = np.linspace(-(chamber_length + converging_length), -converging_length, 100)
+    y_ch = np.full_like(x_ch, r_c)
+
+    x_points = np.concatenate([x_ch, x_converging[1:]])
+    y_points = np.concatenate([y_ch, y_converging[1:]])
+
+    return x_points, y_points
+
+def bell_nozzle_graph(result: FullDesignResult, inputs: EngineInputs):
+    x1, y1 = throat_entry_curve(result.perf.a_throat)
+    x2, y2 = throat_exit_curve(result.perf.a_throat, result.nozzle.initial_angle)
+    x3, y3 = create_bell_curves(result.nozzle.initial_angle, result.nozzle.exit_angle, result.nozzle.nozzle_length, result.perf.a_exit, x2[-1], y2[-1])
+    x_ch, y_ch = chamber_converging_curve(result.nozzle.l_chamber, result.nozzle.l_converging, inputs.CR, result.perf.a_throat, x1, y1)
+
+    x_points = np.concatenate([x_ch, x1, x2, x3]) # connects all points together # m
+    y_points = np.concatenate([y_ch, y1, y2, y3]) # connects all points together # m
     return(x_points, y_points)
 
 
-'''
+
+"""
 # === Test Section to Validate Code ===
 
 # === 1. Define test inputs ===
-At = 0.78539816339  # throat radius in meters (or unit)
+At = 1  # throat radius in meters (or unit)
 epsilon = 3  # area expansion ratio
 Ae = epsilon * At
 theta_n = 33  # initial bell angle in degrees (from fit)
 theta_e = 7   # exit bell angle in degrees (from fit)
 bell_percent = 0.8
 
+L = divergent_length_bell(At, Ae, 0.8)
+CR = 3.5
+L_chamber = 0.9
+L_converging = 1
 
-
-L = divergent_length_bell(At, Ae)
-
-# === 3. Generate each section ===
-x1, y1 = throat_entry_curve(At)
-x2, y2 = throat_exit_curve(At, theta_n)
-x3, y3 = create_bell_curves(theta_n, theta_e, L, Ae, x2[-1], y2[-1])
-
-# === 4. Concatenate full profile ===
-x_total = np.concatenate([x1, x2, x3])
-y_total = np.concatenate([y1, y2, y3])
+x_total, y_total = bell_nozzle_graph(At, Ae, theta_n, theta_e, L, L_chamber, L_converging, CR)
 
 # === 5. Plot ===
 plt.figure(figsize=(10, 4))
 plt.plot(x_total, y_total, label="Bell Nozzle Profile")
-plt.scatter([x1[-1], x2[-1], x3[0], x3[-1]], [y1[-1], y2[-1], y3[0], y3[-1]], color='red', s=15, label='Curve Joints')
 plt.axis("equal")
 plt.grid()
 plt.title(f"Rao Bell Nozzle (ε = {epsilon}, θₙ = {theta_n}°, θₑ = {theta_e}°)")
@@ -107,4 +132,61 @@ plt.ylabel("Radius")
 plt.legend()
 plt.tight_layout()
 plt.show()
+"""
+
+'''
+# === 3. Generate each section ===
+x1, y1 = throat_entry_curve(At)
+
+
+### Test Section
+# Inputs
+CR = 4
+L_chamber = 0.9
+L_converging = 1
+
+r_t = radius_from_area(At)
+r_c = np.sqrt(CR) * r_t
+
+# Number of points
+N_ch = 120
+# ---- Quadratic Bézier converger (slope-matched) ----
+
+# Endpoints
+x0, y0 = -L_converging, r_c        # chamber end
+x2, y2 = x1[0], y1[0]              # throat-entry start
+
+# Slopes
+m0 = 0.0                           # chamber wall slope
+dx = x1[1] - x1[0]
+dy = y1[1] - y1[0]
+m2 = dy / dx                       # throat-entry slope
+
+# Solve for control point C
+xc = (y0 - y2 + m2 * x2) / m2
+yc = y0
+
+# Bézier evaluation
+N_cv = 180
+t = np.linspace(0.0, 1.0, N_cv)
+
+x_cv = (1 - t)**2 * x0 + 2*(1 - t)*t * xc + t**2 * x2
+y_cv = (1 - t)**2 * y0 + 2*(1 - t)*t * yc + t**2 * y2
+
+
+x_ch = np.linspace(
+    -(L_chamber + L_converging),  # upstream end
+    -L_converging,                # downstream end (chamber → converger junction)
+    N_ch
+)
+y_ch = np.full_like(x_ch, r_c)
+
+
+x2, y2 = throat_exit_curve(At, theta_n)
+x3, y3 = create_bell_curves(theta_n, theta_e, L, Ae, x2[-1], y2[-1])
+
+# === 4. Concatenate full profile ===
+x_total = np.concatenate([x_ch, x_cv[1:], x1[1:], x2[1:], x3])
+y_total = np.concatenate([y_ch, y_cv[1:], y1[1:], y2[1:], y3])
+
 '''
