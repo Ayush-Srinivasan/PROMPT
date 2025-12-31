@@ -96,10 +96,6 @@ def load_rao_fit_params() -> dict:
 
 
 def get_rao_coeffs(bell_percent: str) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
-    """
-    Returns:
-      (a_n, b_n, c_n), (a_e, b_e, c_e)
-    """
     pct = _parse_bell_percent(bell_percent)
     params = load_rao_fit_params()
 

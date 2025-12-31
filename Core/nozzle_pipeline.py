@@ -133,25 +133,29 @@ class BellNozzleGeometry:
     exit_radius: NDArray[np.float64]      # m
     nozzle_length: NDArray[np.float64]    # m
     length_chamber: NDArray[np.float64]   # m
+    length_convergent: NDArray[np.float64] # m
     chamber_area: NDArray[np.float64]     # m^2
 
 def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
     nozzle_length = divergent_length_bell(geometry.a_throat, geometry.a_exit, inputs.bell_percent/100)
 
-    (a_n, b_n, c_n), (a_e, b_e, c_e) = get_rao_coeffs(inputs.bell_percent) # gets coefficients based on engine inputs
+    (a_n, b_n, c_n), (a_e, b_e, c_e) = get_rao_coeffs(str(inputs.bell_percent)) # gets coefficients based on engine inputs
 
     initial_angle = initial_angle_fit(geometry.ER, a_n, b_n, c_n) # gets initial angle
 
     exit_angle = exit_angle_fit(geometry.ER, a_e, b_e, c_e) # gets exit angle
 
+    diameter_chamber = chamber_diameter(geometry.a_throat, inputs.contraction_ratio)
+    chamber_radius = radius_from_diameter(diameter_chamber)
+    chamber_area = area_from_radius(chamber_radius)
+
     # gets radiuses and length
     throat_radius = radius_from_area(geometry.a_throat)
     exit_radius = radius_from_area(geometry.a_exit)
     l_chamber = chamber_length(inputs.l_star, geometry.a_throat, inputs.convergent_angle, inputs.contraction_ratio)
+    l_converging = convergent_length(geometry.a_throat, diameter_chamber, 45)
 
-    diameter_chamber = chamber_diameter(geometry.a_throat, inputs.contraction_ratio)
-    chamber_radius = radius_from_diameter(diameter_chamber)
-    chamber_area = area_from_radius(chamber_radius)
+
 
     return BellNozzleGeometry(
         initial_angle=initial_angle,        # degrees
@@ -160,7 +164,8 @@ def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
         throat_radius=throat_radius,        # m
         exit_radius=exit_radius,            # m
         nozzle_length=nozzle_length,        # m
-        length_chamber=l_chamber,            # m
+        length_chamber=l_chamber,           # m
+        length_convergent=l_converging,     # m
         chamber_area=chamber_area,          # m^2              
     )
 

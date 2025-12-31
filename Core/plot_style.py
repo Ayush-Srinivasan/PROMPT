@@ -19,14 +19,14 @@ THEMES: Dict[str, PlotTheme] = {
         ax_bg="#ffffff",
         fg="#111111",
         grid="#cccccc",
-        colors=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"],
+        colors=["#164f77", "#ff7f0e", "#2ca02c", "#d62728"],
     ),
     "dark": PlotTheme(
         fig_bg="#1e1e1e",
         ax_bg="#1e1e1e",
         fg="#ffffff",
         grid="#444444",
-        colors=["#4aa3ff", "#ffae57", "#7fdc7f", "#ff6b6b"],
+        colors=["#ff6b6b","#1E79D4", "#ffae57", "#7fdc7f"],
     ),
     # Barbiecore (Engineering Edition)
     "barbie": PlotTheme(

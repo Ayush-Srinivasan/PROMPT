@@ -1,7 +1,7 @@
 from __future__ import annotations
 import numpy as np
-#import matplotlib.pyplot as plt
-from Isentropic.geometry import radius_from_area
+import matplotlib.pyplot as plt
+from Isentropic.geometry import radius_from_area, line_plot
 
 
 from typing import TYPE_CHECKING
@@ -69,28 +69,37 @@ def create_bell_curves(initial_angle, final_angle, nozzle_length, exit_area, N_x
 def chamber_converging_curve(chamber_length, converging_length, CR, a_throat, x1, y1):
     A_c = CR * a_throat
     r_c = radius_from_area(A_c)
-
+    '''
     x0, y0 = -converging_length, r_c        # chamber end
     x2, y2 = x1[0], y1[0]          # entry start
 
     m0 = 0.0                           # chamber wall slope
-    dx = x1[1] - x1[0]
-    dy = y1[1] - y1[0]
+    dx = x1[10] - x1[0]
+    dy = y1[10] - y1[0]
     m2 = dy / dx                       # throat-entry slope
 
+
+    k = 0.7
     # Solve for control point C
     xc = (y0 - y2 + m2 * x2) / m2
-    yc = y0
+    yc =  y0 + k * (y2 - y0) 
 
     # Bézier evaluation
     t = np.linspace(0.0, 1.0, 100)
 
     x_converging = (1 - t)**2 * x0 + 2*(1 - t)*t * xc + t**2 * x2
     y_converging = (1 - t)**2 * y0 + 2*(1 - t)*t * yc + t**2 * y2
-
-    x_ch = np.linspace(-(chamber_length + converging_length), -converging_length, 100)
+    '''
+    throat_entry_length = abs(x1[0] + x1[-1])
+    x_ch = np.linspace(-(chamber_length + converging_length + throat_entry_length), -(converging_length + throat_entry_length), 100)
     y_ch = np.full_like(x_ch, r_c)
-
+    
+    x0, y0 = x_ch[-1], y_ch[-1]   # chamber end
+    x2, y2 = x1[0], y1[0]         # entry start
+    
+    y_converging = np.linspace(y0, y2, 100)
+    x_converging = line_plot(x0, y0, x2, y2, y_converging)
+    
     x_points = np.concatenate([x_ch, x_converging[1:]])
     y_points = np.concatenate([y_ch, y_converging[1:]])
 
@@ -106,25 +115,27 @@ def bell_nozzle_graph(result: FullDesignResult, inputs: EngineInputs, idx: int =
     L_div   = float(np.atleast_1d(result.nozzle.nozzle_length)[idx])
 
     L_ch   = float(np.atleast_1d(result.nozzle.length_chamber)[idx])
-    L_conv = float(np.atleast_1d(getattr(result.nozzle, "l_converging", 0.0))[idx])
+    L_conv = float(np.atleast_1d(result.nozzle.length_convergent)[idx])
 
     x1, y1 = throat_entry_curve(At)
     x2, y2 = throat_exit_curve(At, theta_n)
     x3, y3 = create_bell_curves(theta_n, theta_e, L_div, Ae, x2[-1], y2[-1])
-    x_ch, y_ch = chamber_converging_curve(L_ch, L_conv, inputs.CR, At, x1, y1)
+    x_ch, y_ch = chamber_converging_curve(L_ch, L_conv, inputs.contraction_ratio, At, x1, y1)
 
     axial = np.concatenate([x_ch, x1, x2, x3]) # connects axial points together
     radial = np.concatenate([y_ch, y1, y2, y3]) # connects radial points together
+    axial = axial - np.nanmin(axial)
+    axial = -axial
     return(axial, radial)
 
 
 
-"""
+'''
 # === Test Section to Validate Code ===
 
 # === 1. Define test inputs ===
 At = 1  # throat radius in meters (or unit)
-epsilon = 3  # area expansion ratio
+epsilon = 4  # area expansion ratio
 Ae = epsilon * At
 theta_n = 33  # initial bell angle in degrees (from fit)
 theta_e = 7   # exit bell angle in degrees (from fit)
@@ -132,25 +143,36 @@ bell_percent = 0.8
 
 L = divergent_length_bell(At, Ae, 0.8)
 CR = 3.5
-L_chamber = 0.9
-L_converging = 1
+L_chamber = 1
+L_converging = 1.2
 
-x_total, y_total = bell_nozzle_graph(At, Ae, theta_n, theta_e, L, L_chamber, L_converging, CR)
+x1, y1 = throat_entry_curve(At)
+x2, y2 = throat_exit_curve(At, theta_n)
+x3, y3 = create_bell_curves(theta_n, theta_e, L, Ae, x2[-1], y2[-1])
+x_ch, y_ch = chamber_converging_curve(L_chamber, L_converging, CR, At, x1, y1)
 
+axial = np.concatenate([x_ch, x1, x2, x3]) # connects axial points together
+radial = np.concatenate([y_ch, y1, y2, y3]) # connects radial points together
+axial = axial - np.nanmin(axial)
+axial = -axial
 # === 5. Plot ===
 plt.figure(figsize=(10, 4))
-plt.plot(x_total, y_total, label="Bell Nozzle Profile")
-plt.axis("equal")
+plt.plot(axial, radial, label="Bell Nozzle Profile")
 plt.grid()
+plt.axis("equal")
 plt.title(f"Rao Bell Nozzle (ε = {epsilon}, θₙ = {theta_n}°, θₑ = {theta_e}°)")
 plt.xlabel("Axial Distance")
 plt.ylabel("Radius")
 plt.legend()
-plt.tight_layout()
 plt.show()
-"""
 
-'''
+def main():
+    print("Running bell_nozzle_geometry as a script/module")
+
+if __name__ == "__main__":
+    main()
+
+
 # === 3. Generate each section ===
 x1, y1 = throat_entry_curve(At)
 

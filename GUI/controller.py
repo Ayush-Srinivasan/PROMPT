@@ -183,6 +183,7 @@ class MainController:
     # -----------------------
     # Write outputs
     # -----------------------
+
     def _write_results(self, results):
         v = self.view
         if not hasattr(v, "results_table"):
@@ -230,7 +231,7 @@ class MainController:
             "T vs O/F": fig_tmp,
         })
         self._update_visualizations(idx=0)
-
+    
     def _update_visualizations(self, idx: int):
         results = self._last_results
         inputs = self._last_inputs
@@ -241,7 +242,6 @@ class MainController:
         else:
             xx, yy = conical_nozzle_graph(results, idx=idx)
             x, y = xx, yy
-
         theme = v.theme_mode()
         fig2d = plot_nozzle_geometry(x, y, theme=theme)
         fig3d = plot_nozzle_revolution(x, y, theme=theme, n_theta=80)

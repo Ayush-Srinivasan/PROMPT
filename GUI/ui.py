@@ -127,9 +127,9 @@ class MainWindow(QMainWindow):
             ("Preview", self._noop),
         ])
         self.tb_export = self._make_toolbar("Export", [
-            ("Export JSON", self._noop),
-            ("Export CSV", self._noop),
-            ("Export CAD", self._noop),
+            ("Export CEA", self._noop),
+            ("Export Engine Data", self._noop),
+            ("Export CAD Datapoints", self._noop),
         ])
 
         # Add tabs (each tab content is a small placeholder widget)
@@ -634,3 +634,5 @@ class MainWindow(QMainWindow):
         if hasattr(self, "controller"):
             self.controller.on_theme_changed()
 
+def createPopupMenu(self):
+    return None
