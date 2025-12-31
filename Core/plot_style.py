@@ -28,14 +28,14 @@ THEMES: Dict[str, PlotTheme] = {
         grid="#444444",
         colors=["#ff6b6b","#1E79D4", "#ffae57", "#7fdc7f"],
     ),
-    # Barbiecore (Engineering Edition)
+    # magenta; for funsies
     "barbie": PlotTheme(
-        fig_bg="#1A0F14",   # Dark Barbie Night
+        fig_bg="#1A0F14",   # Night
         ax_bg="#1A0F14",
         fg="#FFF0F6",       # Cream White
         grid="#6A2E4F",     # Rose border
         colors=[
-            "#E0218A",      # Barbie Pink (primary)
+            "#E0218A",      # Barbie Pink
             "#F6A1C3",      # Bubblegum
             "#4AA3DF",      # Contrast blue
             "#7FD6C2",      # Mint accent

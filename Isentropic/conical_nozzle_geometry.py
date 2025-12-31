@@ -37,7 +37,7 @@ def total_length(l_chamber, l_convergent, l_throat, l_divergent):
 
 # to be used for graphs of conical nozzle or for plugging into 3D CAD softwares
 def conical_nozzle_graph(result: FullDesignResult, idx: int = 0):
-    # idx of OF ratio to visualize
+    # idx of OF ratio; int = 0 to just take first value if extra values not present
     L_div = float(np.atleast_1d(result.nozzle.length_divergent)[idx])
     L_thr = float(np.atleast_1d(result.nozzle.length_throat)[idx])
     L_con = float(np.atleast_1d(result.nozzle.length_convergent)[idx])

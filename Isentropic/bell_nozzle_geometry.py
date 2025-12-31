@@ -67,8 +67,8 @@ def create_bell_curves(initial_angle, final_angle, nozzle_length, exit_area, N_x
     return (x_t, y_t)
 
 def chamber_converging_curve(chamber_length, converging_length, CR, a_throat, x1, y1):
-    A_c = CR * a_throat
-    r_c = radius_from_area(A_c)
+    A_c = CR * a_throat # chamber area
+    r_c = radius_from_area(A_c)    # radius of chamber
     '''
     x0, y0 = -converging_length, r_c        # chamber end
     x2, y2 = x1[0], y1[0]          # entry start
@@ -90,14 +90,14 @@ def chamber_converging_curve(chamber_length, converging_length, CR, a_throat, x1
     x_converging = (1 - t)**2 * x0 + 2*(1 - t)*t * xc + t**2 * x2
     y_converging = (1 - t)**2 * y0 + 2*(1 - t)*t * yc + t**2 * y2
     '''
-    throat_entry_length = abs(x1[0] + x1[-1])
-    x_ch = np.linspace(-(chamber_length + converging_length + throat_entry_length), -(converging_length + throat_entry_length), 100)
-    y_ch = np.full_like(x_ch, r_c)
+    throat_entry_length = abs(x1[0] + x1[-1]) # entry curve length 
+    x_ch = np.linspace(-(chamber_length + converging_length + throat_entry_length), -(converging_length + throat_entry_length), 100) # chamber length
+    y_ch = np.full_like(x_ch, r_c) # same length as x_ch but with 1 value; similar to x_ch * ones(1, 100) in matlab
     
     x0, y0 = x_ch[-1], y_ch[-1]   # chamber end
     x2, y2 = x1[0], y1[0]         # entry start
     
-    y_converging = np.linspace(y0, y2, 100)
+    y_converging = np.linspace(y0, y2, 100) 
     x_converging = line_plot(x0, y0, x2, y2, y_converging)
     
     x_points = np.concatenate([x_ch, x_converging[1:]])
@@ -124,6 +124,7 @@ def bell_nozzle_graph(result: FullDesignResult, inputs: EngineInputs, idx: int =
 
     axial = np.concatenate([x_ch, x1, x2, x3]) # connects axial points together
     radial = np.concatenate([y_ch, y1, y2, y3]) # connects radial points together
+    # post processing and translation
     axial = axial - np.nanmin(axial)
     axial = -axial
     return(axial, radial)

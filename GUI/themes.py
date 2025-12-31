@@ -3,16 +3,10 @@ from PySide6.QtWidgets import QApplication
 
 
 def apply_system_theme(app: QApplication) -> None:
-    """
-    Use OS/Qt default palette (Windows settings).
-    """
     app.setPalette(app.style().standardPalette())
 
 
 def apply_light_theme(app: QApplication) -> None:
-    """
-    Explicit light palette. Keeps it close to Qt defaults but consistent.
-    """
     app.setStyle("Fusion")
     palette = QPalette()
     palette.setColor(QPalette.Window, QColor(242, 242, 242))
@@ -31,9 +25,6 @@ def apply_light_theme(app: QApplication) -> None:
 
 
 def apply_dark_theme(app: QApplication) -> None:
-    """
-    Your existing dark theme (kept, unchanged).
-    """
     app.setStyle("Fusion")
 
     palette = QPalette()
@@ -54,13 +45,8 @@ def apply_dark_theme(app: QApplication) -> None:
 
 
 def apply_barbie_theme(app: QApplication) -> None:
-    """
-    Barbiecore (Engineering Edition) theme.
-    Dark base with hot-pink accents.
-    """
     app.setStyle("Fusion")
 
-    # Palette colors
     BG = QColor("#1A0F14")        # Dark Barbie Night
     PANEL = QColor("#2A1821")     # Panel Pink Charcoal
     TEXT = QColor("#FFF0F6")      # Cream White
@@ -97,9 +83,6 @@ def apply_barbie_theme(app: QApplication) -> None:
 
 
 def apply_theme(app: QApplication, mode: str) -> None:
-    """
-    mode: 'system' | 'light' | 'dark' | 'barbie'
-    """
     mode = (mode or "system").strip().lower()
     if mode == "dark":
         apply_dark_theme(app)
