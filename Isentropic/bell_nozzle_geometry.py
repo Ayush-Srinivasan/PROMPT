@@ -1,9 +1,14 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from Isentropic.geometry import radius_from_area
 from __future__ import annotations
-from Core.engine_analysis import FullDesignResult
-from Core.engine_inputs import EngineInputs
+import numpy as np
+#import matplotlib.pyplot as plt
+from Isentropic.geometry import radius_from_area
+
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Core.engine_analysis import FullDesignResult
+    from Core.engine_inputs import EngineInputs
 
 
 
@@ -91,15 +96,26 @@ def chamber_converging_curve(chamber_length, converging_length, CR, a_throat, x1
 
     return x_points, y_points
 
-def bell_nozzle_graph(result: FullDesignResult, inputs: EngineInputs):
-    x1, y1 = throat_entry_curve(result.perf.a_throat)
-    x2, y2 = throat_exit_curve(result.perf.a_throat, result.nozzle.initial_angle)
-    x3, y3 = create_bell_curves(result.nozzle.initial_angle, result.nozzle.exit_angle, result.nozzle.nozzle_length, result.perf.a_exit, x2[-1], y2[-1])
-    x_ch, y_ch = chamber_converging_curve(result.nozzle.l_chamber, result.nozzle.l_converging, inputs.CR, result.perf.a_throat, x1, y1)
+def bell_nozzle_graph(result: FullDesignResult, inputs: EngineInputs, idx: int = 0):
 
-    x_points = np.concatenate([x_ch, x1, x2, x3]) # connects all points together # m
-    y_points = np.concatenate([y_ch, y1, y2, y3]) # connects all points together # m
-    return(x_points, y_points)
+    At = float(np.atleast_1d(result.perf.a_throat)[idx])
+    Ae = float(np.atleast_1d(result.perf.a_exit)[idx])
+
+    theta_n = float(np.atleast_1d(result.nozzle.initial_angle)[idx])
+    theta_e = float(np.atleast_1d(result.nozzle.exit_angle)[idx])
+    L_div   = float(np.atleast_1d(result.nozzle.nozzle_length)[idx])
+
+    L_ch   = float(np.atleast_1d(result.nozzle.length_chamber)[idx])
+    L_conv = float(np.atleast_1d(getattr(result.nozzle, "l_converging", 0.0))[idx])
+
+    x1, y1 = throat_entry_curve(At)
+    x2, y2 = throat_exit_curve(At, theta_n)
+    x3, y3 = create_bell_curves(theta_n, theta_e, L_div, Ae, x2[-1], y2[-1])
+    x_ch, y_ch = chamber_converging_curve(L_ch, L_conv, inputs.CR, At, x1, y1)
+
+    axial = np.concatenate([x_ch, x1, x2, x3]) # connects axial points together
+    radial = np.concatenate([y_ch, y1, y2, y3]) # connects radial points together
+    return(axial, radial)
 
 
 

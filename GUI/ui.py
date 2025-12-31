@@ -410,9 +410,39 @@ class MainWindow(QMainWindow):
         tabs.addTab(plots, "Plots")
 
         # Visualization
-        viz = QLabel("Nozzle / injector visualization will appear here.")
-        viz.setAlignment(Qt.AlignCenter)
+        viz = QWidget()
+        viz_layout = QVBoxLayout(viz)
+
+        # top 
+        self.of_combo = QComboBox()
+        self.of_combo.setEnabled(False)
+        self.of_label = QLabel("Visualization O/F:")
+        of_row = QHBoxLayout()
+        of_row.addWidget(self.of_label)
+        of_row.addWidget(self.of_combo)
+        of_row.addStretch(1)
+
+        viz_layout.addLayout(of_row)
+
+        # --- plots row (horizontal) ---
+        plots_row = QHBoxLayout()
+
+        # 2D plot
+        self.viz2d_widget = QWidget()
+        self.viz2d_layout = QVBoxLayout(self.viz2d_widget)
+        plots_row.addWidget(self.viz2d_widget, 1)
+
+        # 3D plot
+        self.viz3d_widget = QWidget()
+        self.viz3d_layout = QVBoxLayout(self.viz3d_widget)
+        plots_row.addWidget(self.viz3d_widget, 1)
+
+        # add plots row to main vertical layout
+        viz_layout.addLayout(plots_row, 1)
+
+
         tabs.addTab(viz, "Visualization")
+
 
         # Drawing
         drawing = QLabel("Dimensioned drawing output will appear here.")
@@ -477,6 +507,12 @@ class MainWindow(QMainWindow):
         self.console.append("Reset inputs.")
         self.statusBar().showMessage("Reset")
 
+    def reset_of_combo(self):
+        self.of_combo.blockSignals(True)
+        self.of_combo.clear()
+        self.of_combo.setEnabled(False)
+        self.of_combo.blockSignals(False)
+
     def on_reset(self):
        self.reset_requested.emit()
 
@@ -537,6 +573,31 @@ class MainWindow(QMainWindow):
 
         self.plot_widget_layout.addWidget(self._plot_toolbar)
         self.plot_widget_layout.addWidget(self._plot_canvas)
+
+    def set_viz_figures(self, fig2d, fig3d):
+        # --- 2D ---
+        while self.viz2d_layout.count():
+            item = self.viz2d_layout.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.setParent(None)
+
+        self._viz2d_canvas = FigureCanvas(fig2d)
+        self._viz2d_toolbar = NavigationToolbar(self._viz2d_canvas, self)
+        self.viz2d_layout.addWidget(self._viz2d_toolbar)
+        self.viz2d_layout.addWidget(self._viz2d_canvas)
+
+        # --- 3D ---
+        while self.viz3d_layout.count():
+            item = self.viz3d_layout.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.setParent(None)
+
+        self._viz3d_canvas = FigureCanvas(fig3d)
+        self._viz3d_toolbar = NavigationToolbar(self._viz3d_canvas, self)
+        self.viz3d_layout.addWidget(self._viz3d_toolbar)
+        self.viz3d_layout.addWidget(self._viz3d_canvas)
 
     def _toggle_left(self):
         self.left_dock.setVisible(not self.left_dock.isVisible())

@@ -6,12 +6,16 @@ from PySide6.QtWidgets import QTableWidgetItem, QMessageBox
 from Core.engine_inputs import EngineInputs
 from Core.engine_analysis import engine_design_run
 from Core.plots import plot_isp_vs_of, plot_temp_vs_of, plot_velocity_vs_of
+from Isentropic.bell_nozzle_geometry import bell_nozzle_graph
+from Isentropic.conical_nozzle_geometry import conical_nozzle_graph
+from Core.plots import plot_nozzle_geometry, plot_nozzle_revolution
 
 BAR_TO_PA = 1e5 # unit conversion from bar to pascals
 
 class MainController:
     def __init__(self, view):
         self.view = view
+        self.view.of_combo.currentIndexChanged.connect(self.on_of_combo_changed)
 
         # Your ui.py will emit these if you added the signals approach
         if hasattr(view, "run_requested"):
@@ -31,12 +35,17 @@ class MainController:
         # also clear outputs table
         for r in range(v.results_table.rowCount()):
             v.results_table.setItem(r, 1, QTableWidgetItem("—"))
+            
+        self.view.reset_of_combo()
+        self._last_results = None
+        self._last_inputs = None
 
     def on_run(self):
         v = self.view
 
         try:
             eng_in = self._read_engine_inputs()
+            self._last_inputs = eng_in
         except ValueError as e:
             QMessageBox.warning(v, "Input error", str(e))
             v.statusBar().showMessage("Input error")
@@ -57,8 +66,10 @@ class MainController:
         self._last_results = results
 
         self._write_results(results)
+        self._populate_of_combo(results)
         v.console.append("Complete.")
         v.statusBar().showMessage("Complete")
+
         
     def on_theme_changed(self):
         if getattr(self, "_last_results", None) is None:
@@ -147,6 +158,28 @@ class MainController:
             source="GUI",
         )
 
+    def _populate_of_combo(self, results):
+        self.view.of_combo.blockSignals(True)
+        self.view.of_combo.clear()
+
+        of_values = results.cea.OF_Ratio
+
+        for i, of in enumerate(of_values):
+            self.view.of_combo.addItem(f"O/F = {of:.3f}", i)
+
+        self.view.of_combo.setCurrentIndex(0)
+        self.view.of_combo.setEnabled(len(of_values) > 1)
+        self.view.of_combo.blockSignals(False)
+
+    def on_of_combo_changed(self, _):
+        if getattr(self, "_last_results", None) is None:
+            return
+
+        idx = self.view.of_combo.currentData()
+        if idx is None:
+            return
+        self._update_visualizations(idx)
+
     # -----------------------
     # Write outputs
     # -----------------------
@@ -196,7 +229,24 @@ class MainController:
             "Velocity vs O/F": fig_vel,
             "T vs O/F": fig_tmp,
         })
+        self._update_visualizations(idx=0)
 
+    def _update_visualizations(self, idx: int):
+        results = self._last_results
+        inputs = self._last_inputs
+        v = self.view
+
+        if results.nozzle.__class__.__name__.lower().startswith("bell"):
+            y, x = bell_nozzle_graph(results, inputs, idx=idx)
+        else:
+            xx, yy = conical_nozzle_graph(results, idx=idx)
+            x, y = xx, yy
+
+        theme = v.theme_mode()
+        fig2d = plot_nozzle_geometry(x, y, theme=theme)
+        fig3d = plot_nozzle_revolution(x, y, theme=theme, n_theta=80)
+
+        v.set_viz_figures(fig2d, fig3d)
 
     # -----------------------
     # parsing helpers

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Union
+from typing import Union
 
 from .engine_inputs import EngineInputs
 from .nozzle_pipeline import engine_analysis, bell_nozzle_sizing, conical_nozzle_sizing, EngineDesignResult, ConicalNozzleGeometry, BellNozzleGeometry

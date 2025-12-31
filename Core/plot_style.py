@@ -71,4 +71,15 @@ def apply_mpl_theme(fig, ax, theme_name: str) -> PlotTheme:
     # grid
     ax.grid(True, color=t.grid, alpha=0.6)
 
+    if hasattr(ax, "zaxis"):
+        ax.zaxis.label.set_color(t.fg)
+
+        ax.xaxis._axinfo["grid"]["color"] = t.grid
+        ax.yaxis._axinfo["grid"]["color"] = t.grid
+        ax.zaxis._axinfo["grid"]["color"] = t.grid
+
+        ax.xaxis._axinfo["tick"]["color"] = t.fg
+        ax.yaxis._axinfo["tick"]["color"] = t.fg
+        ax.zaxis._axinfo["tick"]["color"] = t.fg
+
     return t

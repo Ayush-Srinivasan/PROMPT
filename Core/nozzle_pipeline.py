@@ -13,7 +13,7 @@ from Isentropic import (
     # engine_performance.py
     performance_characterization,           
     # conical_nozzle_geometry.py                                           
-    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length, conical_nozzle_graph, 
+    throat_length, chamber_diameter, chamber_length, exit_diameter, divergent_length, convergent_length, total_length,
     # bell_nozzle_geometry.py                   
     initial_angle_fit, exit_angle_fit, divergent_length_bell,
     # geometry.py 
