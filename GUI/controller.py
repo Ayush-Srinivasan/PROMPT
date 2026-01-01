@@ -1,10 +1,11 @@
 # GUI/controller.py
 from __future__ import annotations
 import numpy as np
-from PySide6.QtWidgets import QTableWidgetItem, QMessageBox
+from PySide6.QtWidgets import QTableWidgetItem, QMessageBox, QFileDialog
 
 from Core.engine_inputs import EngineInputs
 from Core.engine_analysis import engine_design_run
+from Core.exports import exportCEAResults, exportEngineData, exportNozzleDatapoints
 from Core.plots import plot_isp_vs_of, plot_temp_vs_of, plot_velocity_vs_of
 from Isentropic.bell_nozzle_geometry import bell_nozzle_graph
 from Isentropic.conical_nozzle_geometry import conical_nozzle_graph
@@ -22,6 +23,15 @@ class MainController:
             view.run_requested.connect(self.on_run)
         if hasattr(view, "reset_requested"):
             view.reset_requested.connect(self.on_reset)
+
+        if hasattr(view, "export_cea_requested"):
+            view.export_cea_requested.connect(self.on_export_cea)
+
+        if hasattr(view, "export_engine_requested"):
+            view.export_engine_requested.connect(self.on_export_engine)
+
+        if hasattr(view, "export_nozzle_requested"):
+            view.export_nozzle_requested.connect(self.on_export_nozzle)
 
         # If you did NOT add signals and still want controller ownership,
         # you can also directly override by rebinding:
@@ -70,7 +80,75 @@ class MainController:
         v.console.append("Complete.")
         v.statusBar().showMessage("Complete")
 
+    def _choose_export_folder(self) -> str | None:
+        folder = QFileDialog.getExistingDirectory(
+            self.view,
+            "Select Export Folder"
+        )
+        return folder if folder else None 
+       
+    def on_export_cea(self):
+        if self._last_results is None:
+            QMessageBox.warning(self.view, "No data", "Run an analysis first.")
+            return
+
+        out_dir = self._choose_export_folder()
+        if not out_dir:
+            return
+
+        paths = exportCEAResults(
+            self._last_results.cea,
+            out_dir=out_dir,
+            filename="cea_results.csv"
+        )
+
+        for p in paths.values():
+            self.view.console.append(f"Exported CEA → {p}")
         
+    def on_export_engine(self):
+        if self._last_results is None:
+            QMessageBox.warning(self.view, "No data", "Run an analysis first.")
+            return
+
+        out_dir = self._choose_export_folder()
+        if not out_dir:
+            return
+
+        paths = exportEngineData(
+            self._last_results,
+            self._last_inputs,
+            out_dir=out_dir,
+            filename="engine_data.csv"
+        )
+
+        for p in paths.values():
+            self.view.console.append(f"Exported Engine Results → {p}")
+
+    def on_export_nozzle(self):
+        if not hasattr(self, "_last_nozzle_xy"):
+            QMessageBox.warning(self.view, "No geometry", "No nozzle geometry to export.")
+            return
+
+        out_dir = QFileDialog.getExistingDirectory(self.view, "Select Export Folder")
+        if not out_dir:
+            return
+
+        data = self._last_nozzle_xy
+        of_val = data["OF"]
+
+        filename = f"nozzle_xy_OF_{of_val:.3f}.csv"
+
+        exportNozzleDatapoints(
+            data["x"],
+            data["y"],
+            out_dir,
+            filename,
+        )
+
+        self.view.console.append(
+            f"Exported nozzle datapoints (OF={of_val:.3f})"
+        )
+    
     def on_theme_changed(self):
         if getattr(self, "_last_results", None) is None:
             return
@@ -179,7 +257,6 @@ class MainController:
         if idx is None:
             return
         self._update_visualizations(idx)
-
     # -----------------------
     # Write outputs
     # -----------------------
@@ -242,6 +319,15 @@ class MainController:
         else:
             xx, yy = conical_nozzle_graph(results, idx=idx)
             x, y = xx, yy
+        # caches results
+        self._last_nozzle_xy = {
+            "idx": idx,
+            "OF": float(results.cea.OF_Ratio[idx]),
+            "x": x,
+            "y": y,
+            "nozzle_type": results.nozzle.__class__.__name__,
+        }
+
         theme = v.theme_mode()
         fig2d = plot_nozzle_geometry(x, y, theme=theme)
         fig3d = plot_nozzle_revolution(x, y, theme=theme, n_theta=80)

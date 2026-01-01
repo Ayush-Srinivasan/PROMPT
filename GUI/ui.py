@@ -18,9 +18,14 @@ from .widgets import make_searchable
 
 class MainWindow(QMainWindow):
 
-    # gives commands for run and reset requests
+    # run and reset 
     run_requested = Signal()
     reset_requested = Signal()
+
+    # exports
+    export_cea_requested = Signal()
+    export_engine_requested = Signal()
+    export_nozzle_requested = Signal()
 
     def __init__(self):
         super().__init__()
@@ -127,9 +132,9 @@ class MainWindow(QMainWindow):
             ("Preview", self._noop),
         ])
         self.tb_export = self._make_toolbar("Export", [
-            ("Export CEA", self._noop),
-            ("Export Engine Data", self._noop),
-            ("Export CAD Datapoints", self._noop),
+            ("Export CEA", self.export_cea_requested.emit),
+            ("Export Engine Data", self.export_engine_requested.emit),
+            ("Export CAD Datapoints", self.export_nozzle_requested.emit),
         ])
 
         # Add tabs (each tab content is a small placeholder widget)

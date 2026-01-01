@@ -141,9 +141,9 @@ def bell_nozzle_sizing(geometry: EngineDesignResult, inputs: EngineInputs):
 
     (a_n, b_n, c_n), (a_e, b_e, c_e) = get_rao_coeffs(str(inputs.bell_percent)) # gets coefficients based on engine inputs
 
-    initial_angle = initial_angle_fit(geometry.ER, a_n, b_n, c_n) # gets initial angle
+    initial_angle = initial_angle_fit(geometry.ER, a_n, b_n, c_n) # entry angle
 
-    exit_angle = exit_angle_fit(geometry.ER, a_e, b_e, c_e) # gets exit angle
+    exit_angle = exit_angle_fit(geometry.ER, a_e, b_e, c_e) # exit angle
 
     diameter_chamber = chamber_diameter(geometry.a_throat, inputs.contraction_ratio)
     chamber_radius = radius_from_diameter(diameter_chamber)
