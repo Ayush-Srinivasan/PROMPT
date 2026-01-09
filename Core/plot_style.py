@@ -43,28 +43,28 @@ THEMES: Dict[str, PlotTheme] = {
     ),
     "brat": PlotTheme(
         
-        #fig_bg="#0F120A",    # Deep olive-black
-        #ax_bg="#0F120A",
-        #fg="#E6ECD8",        # Soft off-white
-        #grid="#2A301A",      # Olive grid / border
-        #colors=[
-        #    "#8ACE00",      # Brat Green (primary curve)
-        #    "#A6F200",      # Acid highlight
-        #    "#6F7A60",      # Muted sage (secondary curve)
-        #    "#E6A700",      # Warm warning / contrast
-
-        #],
-        
-        fig_bg="#8ACE00",    # same brat green as UI
-        ax_bg="#8ACE00",
-        fg="#000000",        # hard black text/axes
-        grid="#2A2A00",      # dirty dark grid
+        fig_bg="#0F120A",    # Deep olive-black
+        ax_bg="#0F120A",
+        fg="#E6ECD8",        # Soft off-white
+        grid="#2A301A",      # Olive grid / border
         colors=[
-            "#000000",  # primary curve (black)
-            "#39FF14",  # laser highlight
-            "#004400",  # deep toxic green
-            "#1A531A",  # secondary deep green
+            "#8ACE00",      # Brat Green (primary curve)
+            "#A6F200",      # Acid highlight
+            "#6F7A60",      # Muted sage (secondary curve)
+            "#E6A700",      # Warm warning / contrast
+
         ],
+        
+        #fig_bg="#8ACE00",    # same brat green as UI
+        #ax_bg="#8ACE00",
+        #fg="#000000",        # hard black text/axes
+        #grid="#2A2A00",      # dirty dark grid
+        #colors=[
+           # "#000000",  # primary curve (black)
+           # "#39FF14",  # laser highlight
+           # "#004400",  # deep toxic green
+           # "#1A531A",  # secondary deep green
+        #],
     ),
     # "system" maps to a default; treat as light unless you want OS detection
     "system": PlotTheme(

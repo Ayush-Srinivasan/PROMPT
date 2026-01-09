@@ -4,7 +4,7 @@ from scipy.constants import R
 def isentropic_eqns(Gamma, Chamber_Pressure, Chamber_Temperature, Ambient_Pressure, Molecular_Weight):
 
     # equation 1
-    Specific_Gas_Constant = (R / Molecular_Weight)*1000
+    Specific_Gas_Constant = (R / Molecular_Weight)*1000 # J/ kg * K
 
     # equation 2   
     Exit_Mach = np.sqrt((2/(Gamma-1))*((Chamber_Pressure/Ambient_Pressure)**((Gamma-1)/Gamma) - 1)) 

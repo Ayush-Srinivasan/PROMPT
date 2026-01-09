@@ -83,7 +83,7 @@ def apply_barbie_theme(app: QApplication) -> None:
 
 def apply_brat_theme(app: QApplication) -> None:
     app.setStyle("Fusion")
-    '''
+    
     BG = QColor("#0F120A")          # Deep olive-black background
     PANEL = QColor("#1E2314")       # Olive panel
     TEXT = QColor("#E6ECD8")        # Soft off-white
@@ -97,7 +97,7 @@ def apply_brat_theme(app: QApplication) -> None:
     TEXT_MUTED = QColor("#2A2A00")
     BORDER = QColor("#8ACE00")      # Laser green borders
     GREEN = QColor("#8ACE00")   # Full-on green highlight
-
+    '''
     palette = QPalette()
     palette.setColor(QPalette.Window, BG)
     palette.setColor(QPalette.WindowText, TEXT)

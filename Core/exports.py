@@ -2,6 +2,9 @@ from pathlib import Path
 from CEA.CEA_Outputs import CEAOutputs
 from Core.engine_analysis import FullDesignResult
 import pandas as pd
+import numpy as np
+import pandas as pd
+from pathlib import Path
 
 def exportCEAResults(cea: CEAOutputs, out_dir: str, filename: str = "cea_results.csv") -> dict[str, str]:
     out_dir = Path(out_dir)
@@ -33,11 +36,9 @@ def exportCEAResults(cea: CEAOutputs, out_dir: str, filename: str = "cea_results
 
     return {"CEA": str(path)}
 
-import numpy as np
-import pandas as pd
-from pathlib import Path
 
-def exportEngineData(results, inputs, out_dir: str, filename="engine_data.csv"):
+
+def exportEngineData(results: FullDesignResult, inputs, out_dir: str, filename="engine_data.csv"):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -45,22 +46,28 @@ def exportEngineData(results, inputs, out_dir: str, filename="engine_data.csv"):
     n = OF.size
     nan = np.full(n, np.nan)
 
+    cea = results.cea
     perf = results.perf
     noz = results.nozzle
 
     # --- geometry-independent ---
     df = {
         "OF": OF,
-        "At(m^2)": perf.a_throat,
-        "Ae(m^2)": perf.a_exit,
-        "ER": perf.ER,
-        "Isp(s)": perf.Isp,
-        "cstar(m/s)": perf.c_star,
-        "v_exit(m/s)": perf.v_exit,
-        "mdot(kg/s)": perf.mdot,
-        "T_chamber(K)": results.cea.T_chamber,
+        "Density": cea.density_chamber,
+        "Gamma": cea.gamma,
+        "P_chamber (Pa)": cea.p_chamber,
+        "T_chamber(K)": perf.T_chamber,
+        "MW (g/mol)": cea.molecular_weight,
+        "Mach_exit": perf.mach_exit,
         "T_throat(K)": perf.T_throat,
         "T_exit(K)": perf.T_exit,
+        "v_exit(m/s)": perf.v_exit,
+        "ER": perf.ER,
+        "mdot(kg/s)": perf.mdot,
+        "At(m^2)": perf.a_throat,
+        "Ae(m^2)": perf.a_exit,
+        "Isp(s)": perf.Isp,
+        "cstar(m/s)": perf.c_star,
         "nozzle_type": [inputs.nozzle_type] * n,
     }
 
