@@ -56,7 +56,7 @@ def exportEngineData(results: FullDesignResult, inputs, out_dir: str, filename="
         "Density": cea.density_chamber,
         "Gamma": cea.gamma,
         "P_chamber (Pa)": cea.p_chamber,
-        "T_chamber(K)": perf.T_chamber,
+        "T_chamber(K)": cea.T_chamber,
         "MW (g/mol)": cea.molecular_weight,
         "Mach_exit": perf.mach_exit,
         "T_throat(K)": perf.T_throat,
