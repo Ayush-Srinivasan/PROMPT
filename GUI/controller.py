@@ -296,7 +296,7 @@ class MainController:
             for j, txt in enumerate(row):
                 v.results_table.setItem(i, j, QTableWidgetItem(txt))
 
-        theme = self.view.theme_mode()  # expects "system" | "light" | "dark" | "barbie"
+        theme = self.view.theme_mode()  # expects "system" | "light" | "dark" | "barbie" / "brat"
 
         fig_isp = plot_isp_vs_of(OF, Isp, theme=theme)
         fig_vel = plot_velocity_vs_of(OF, vexit, cstar, theme=theme)

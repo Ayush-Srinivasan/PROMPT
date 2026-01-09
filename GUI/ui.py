@@ -68,13 +68,15 @@ class MainWindow(QMainWindow):
         self.action_theme_system = QAction("Theme: System (Windows)", self, checkable=True)
         self.action_theme_light  = QAction("Theme: Light", self, checkable=True)
         self.action_theme_dark   = QAction("Theme: Dark", self, checkable=True)
-        self.action_theme_barbie = QAction("Theme: Barbie", self, checkable=True)
+        self.action_theme_barbie = QAction("Theme: Magenta", self, checkable=True)
+        self.action_theme_brat   = QAction("Theme: Brat", self, checkable=True)
 
         for a in (
             self.action_theme_system,
             self.action_theme_light,
             self.action_theme_dark,
             self.action_theme_barbie,
+            self.action_theme_brat,
         ):
             self.theme_group.addAction(a)
             settings_menu.addAction(a)
@@ -85,6 +87,7 @@ class MainWindow(QMainWindow):
             self.action_theme_light:  "light",
             self.action_theme_dark:   "dark",
             self.action_theme_barbie: "barbie",
+            self.action_theme_brat: "brat"
         }
 
         # ONE handler for all theme changes
@@ -99,6 +102,8 @@ class MainWindow(QMainWindow):
                 self.action_theme_light.setChecked(True)
             elif mode == "barbie":
                 self.action_theme_barbie.setChecked(True)
+            elif mode == "brat":
+                self.action_theme_brat.setChecked(True)
             else:
                 self.action_theme_system.setChecked(True)
 
@@ -450,9 +455,9 @@ class MainWindow(QMainWindow):
 
 
         # Drawing
-        drawing = QLabel("Dimensioned drawing output will appear here.")
-        drawing.setAlignment(Qt.AlignCenter)
-        tabs.addTab(drawing, "Drawing")
+        #drawing = QLabel("Dimensioned drawing output will appear here.")
+        #drawing.setAlignment(Qt.AlignCenter)
+        #tabs.addTab(drawing, "Drawing")
 
 
 
@@ -638,6 +643,3 @@ class MainWindow(QMainWindow):
 
         if hasattr(self, "controller"):
             self.controller.on_theme_changed()
-
-def createPopupMenu(self):
-    return None

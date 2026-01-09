@@ -14,7 +14,6 @@ def exportCEAResults(cea: CEAOutputs, out_dir: str, filename: str = "cea_results
         'OF': cea.OF_Ratio,
         'P_chamber(Bar)': cea.p_chamber,
         'T_chamber(K)': cea.T_chamber,
-        'cp(kJ/kg*K)': cea.specific_heat,
         'gamma': cea.gamma,
         'density(kg/m^3)': cea.density_chamber,
         'mw(kg/mol)': cea.molecular_weight

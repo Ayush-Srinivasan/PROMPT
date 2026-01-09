@@ -10,4 +10,3 @@ class CEAOutputs:
     T_chamber: NDArray[np.float64]
     molecular_weight: NDArray[np.float64]
     density_chamber: NDArray[np.float64]
-    specific_heat: NDArray[np.float64]

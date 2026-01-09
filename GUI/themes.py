@@ -81,6 +81,49 @@ def apply_barbie_theme(app: QApplication) -> None:
 
     app.setPalette(palette)
 
+def apply_brat_theme(app: QApplication) -> None:
+    app.setStyle("Fusion")
+    '''
+    BG = QColor("#0F120A")          # Deep olive-black background
+    PANEL = QColor("#1E2314")       # Olive panel
+    TEXT = QColor("#E6ECD8")        # Soft off-white
+    TEXT_MUTED = QColor("#A7B39A")  # Muted sage
+    BORDER = QColor("#2A301A")      # Subtle olive border
+    GREEN = QColor("#8ACE00")       # Brat Green primary
+    '''
+    BG = QColor("#8ACE00")          
+    PANEL = QColor("#8ACE00")       # BRAT GREEN PANELS
+    TEXT = QColor("#0A0A00")        # Near-black text
+    TEXT_MUTED = QColor("#2A2A00")
+    BORDER = QColor("#8ACE00")      # Laser green borders
+    GREEN = QColor("#8ACE00")   # Full-on green highlight
+
+    palette = QPalette()
+    palette.setColor(QPalette.Window, BG)
+    palette.setColor(QPalette.WindowText, TEXT)
+
+    palette.setColor(QPalette.Base, PANEL)
+    palette.setColor(QPalette.AlternateBase, BG)
+
+    palette.setColor(QPalette.ToolTipBase, TEXT)
+    palette.setColor(QPalette.ToolTipText, BG)
+
+    palette.setColor(QPalette.Text, TEXT)
+    palette.setColor(QPalette.PlaceholderText, TEXT_MUTED)
+
+    palette.setColor(QPalette.Button, PANEL)
+    palette.setColor(QPalette.ButtonText, TEXT)
+
+    palette.setColor(QPalette.BrightText, QColor("#A6F200"))
+    palette.setColor(QPalette.Highlight, GREEN)
+    palette.setColor(QPalette.HighlightedText, BG)
+
+    # Structural roles (borders, separators)
+    palette.setColor(QPalette.Light, BORDER)
+    palette.setColor(QPalette.Mid, BORDER)
+    palette.setColor(QPalette.Dark, BORDER)
+
+    app.setPalette(palette)
 
 def apply_theme(app: QApplication, mode: str) -> None:
     mode = (mode or "system").strip().lower()
@@ -90,5 +133,7 @@ def apply_theme(app: QApplication, mode: str) -> None:
         apply_light_theme(app)
     elif mode == "barbie":
         apply_barbie_theme(app)
+    elif mode == "brat":
+        apply_brat_theme(app)
     else:
         apply_system_theme(app)

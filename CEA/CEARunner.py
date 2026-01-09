@@ -48,10 +48,6 @@ def of_grid(engine_in: EngineInputs) -> np.ndarray:
 
 
 def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> CEAOutputs:
-    """
-    Compute chamber properties over a single O/F or an O/F sweep.
-    Returns a list of CEAOutputs rows, one per O/F.
-    """
     Pc_bar = engine_in.chamber_pressure / 1e5  # Pa -> bar
 
     cea = CEA_Obj(
@@ -60,7 +56,6 @@ def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> CEAOutputs:
         pressure_units="bar",
         temperature_units="K",
         density_units="kg/m^3",
-        specific_heat_units="kJ/kg-K",
     )
 
     OF_values = of_grid(engine_in).astype(float)
@@ -73,7 +68,6 @@ def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> CEAOutputs:
     gamma = np.empty(n, dtype=float)
     mol_wt = np.empty(n, dtype=float)
     density = np.empty(n, dtype=float)
-    cp = np.empty(n, dtype=float)
     
     for i, MR in enumerate(OF_values):
         T_chamber[i] = cea.get_Tcomb(Pc=Pc_bar, MR=MR)
@@ -87,11 +81,6 @@ def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> CEAOutputs:
         )
         density[i] = dens_i
 
-        cp_i, _, _ = cea.get_HeatCapacities(
-            Pc=Pc_bar, MR=MR, eps=eps, frozen=frozen_eqm, frozenAtThroat=0
-        )
-        cp[i] = cp_i
-
     return CEAOutputs(
         OF_Ratio=OF_values,
         p_chamber=np.full(n, Pc_bar, dtype=float),
@@ -99,5 +88,4 @@ def CEArun(engine_in: EngineInputs, eps: float = 40.0) -> CEAOutputs:
         T_chamber=T_chamber,
         molecular_weight=mol_wt,
         density_chamber=density,
-        specific_heat=cp,
     )

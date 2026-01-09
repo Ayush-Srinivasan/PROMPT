@@ -8,7 +8,7 @@ def performance_characterization(thrust, exit_velocity, chamber_temperature, cha
     
     Isp = thrust / (m_dot * g)
     
-    throat_area = (m_dot * np.sqrt(chamber_temperature) / chamber_pressure) * ( np.sqrt(gamma / sgc) * ((gamma + 1)/2) ** ((gamma + 1)/(2 * (gamma - 1))) )** -1
+    throat_area = (m_dot * np.sqrt(chamber_temperature) / chamber_pressure) * ( np.sqrt(sgc/ gamma) * ((gamma + 1)/2) ** ((gamma + 1)/(2 * (gamma - 1))) )
     
     exit_area = throat_area * area_ratio
     
