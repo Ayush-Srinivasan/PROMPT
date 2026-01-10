@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
         self.action_theme_light  = QAction("Theme: Light", self, checkable=True)
         self.action_theme_dark   = QAction("Theme: Dark", self, checkable=True)
         self.action_theme_barbie = QAction("Theme: Magenta", self, checkable=True)
-        self.action_theme_brat   = QAction("Theme: Brat", self, checkable=True)
+        self.action_theme_brat   = QAction("Theme: Green", self, checkable=True)
 
         for a in (
             self.action_theme_system,
@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
         chamber = QGroupBox("Chamber / Propellants")
         f1 = QFormLayout(chamber)
         self.pc = QLineEdit()
-        self.pc.setPlaceholderText("Pa (e.g., 20e5)")
+        self.pc.setPlaceholderText("Bar (e.g., 20)")
         self.mr = QLineEdit()
         self.mr.setPlaceholderText("O/F (e.g., 2.5)")
         self.fuel = QComboBox()
