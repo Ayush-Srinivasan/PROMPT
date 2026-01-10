@@ -48,7 +48,7 @@ THEMES: Dict[str, PlotTheme] = {
         fg="#E6ECD8",        # Soft off-white
         grid="#2A301A",      # Olive grid / border
         colors=[
-            "#8ACE00",      # Brat Green (primary curve)
+            "#B4DD13",      # Brat Green (primary curve)
             "#A6F200",      # Acid highlight
             "#6F7A60",      # Muted sage (secondary curve)
             "#E6A700",      # Warm warning / contrast
