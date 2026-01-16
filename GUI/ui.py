@@ -1,19 +1,17 @@
-# GUI/ui.py
-
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QDockWidget, QTabWidget, QApplication,
-    QTreeWidget, QTreeWidgetItem, QTextEdit, QTableWidget, QTableWidgetItem,
+    QTreeWidget, QTreeWidgetItem, QTextEdit, QTableWidget,
     QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox,
-    QLineEdit, QComboBox, QPushButton, QLabel, QToolBar, QMessageBox, QCheckBox, 
+    QLineEdit, QComboBox, QLabel, QToolBar, QMessageBox, QCheckBox, 
 )
-from PySide6.QtGui import QAction, QDoubleValidator, QActionGroup, QGuiApplication
+from PySide6.QtGui import QAction, QDoubleValidator, QActionGroup
 from PySide6.QtCore import Qt, Signal, QSettings, QSignalBlocker
 from .themes import apply_theme
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
 from Data import Fuels, Oxidizers
 from .widgets import make_searchable
+from .version import __version__
 
 
 class MainWindow(QMainWindow):
@@ -32,7 +30,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("PROMPT", "RocketEngineDesignTool")
         self._theme_mode = self.settings.value("theme/mode", "system")
 
-        self.setWindowTitle("PROMPT - Rocket Engine Design Tool")
+        self.setWindowTitle(f"PROMPT – Rocket Engine Design Tool v{__version__}")
         self._build_menu()
         self._build_top_command_area()
         self._build_docks()
