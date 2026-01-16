@@ -132,10 +132,10 @@ class MainWindow(QMainWindow):
             ("Run", self.on_run),
             ("Reset", self.on_reset),
         ])
-        self.tb_nozzle = self._make_toolbar("Nozzle", [
-            ("Generate", self._noop),
-            ("Preview", self._noop),
-        ])
+        #self.tb_nozzle = self._make_toolbar("Nozzle", [
+            #("Generate", self._noop),
+            #("Preview", self._noop),
+        #])
         self.tb_export = self._make_toolbar("Export", [
             ("Export CEA", self.export_cea_requested.emit),
             ("Export Engine Data", self.export_engine_requested.emit),
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
 
         # Add tabs (each tab content is a small placeholder widget)
         self.command_tabs.addTab(QWidget(), "Inputs")
-        self.command_tabs.addTab(QWidget(), "Nozzle")
+        #self.command_tabs.addTab(QWidget(), "Nozzle") inoperable
         self.command_tabs.addTab(QWidget(), "Export")
 
         self.command_tabs.currentChanged.connect(self._on_command_tab_changed)
@@ -172,8 +172,8 @@ class MainWindow(QMainWindow):
         # swap toolbars based on tab selection
         mapping = {
             0: self.tb_inputs,
-            1: self.tb_nozzle,
-            2: self.tb_export,
+            #1: self.tb_nozzle,
+            1: self.tb_export,
         }
         new_tb = mapping.get(idx, self.tb_inputs)
         if new_tb is self._active_toolbar:
@@ -619,7 +619,7 @@ class MainWindow(QMainWindow):
         self.bottom_dock.setVisible(not self.bottom_dock.isVisible())
 
     def _about(self):
-        QMessageBox.information(self, "About", "SolidWorks-style layout using QMainWindow + DockWidgets + Toolbars.")
+        QMessageBox.information(self, "About", "Rocket Engine Design Tool using Python. To get help, check the documentation folder in your project directory.")
 
     def _noop(self):
         self.statusBar().showMessage("Not implemented yet")
